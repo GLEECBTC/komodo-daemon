@@ -152,6 +152,7 @@ namespace GMPArithTests
     TEST(GMPArithTests, RewardsTest)
     {
 
+        bool fTxIndexOld = fTxIndex;
         bool fPrintToConsoleOld = fPrintToConsole;
         assetchain assetchainOld = chainName; // save the chainName before test
         chainName = assetchain("OTHER");      // considering this is not KMD
@@ -318,6 +319,7 @@ namespace GMPArithTests
 
         fPrintToConsole = fPrintToConsoleOld;
         chainName = assetchainOld; // restore saved values
+        fTxIndex = fTxIndexOld;
 
         if (fRewardTestFailure) {
             FAIL() << RewardTestErrorMessage;
