@@ -81,6 +81,7 @@ namespace ParseArgumentsTests {
                 mapArgs.clear();
                 mapMultiArgs.clear();
                 ASSETCHAINS_MAGIC = oldASSETCHAINS_MAGIC;
+                memset(ASSETCHAINS_CCDISABLES, 0, sizeof(ASSETCHAINS_CCDISABLES));
             }
         public:
             ParseArgumentsTests() : pathDataDir(""), oldASSETCHAINS_MAGIC(ASSETCHAINS_MAGIC) {}
