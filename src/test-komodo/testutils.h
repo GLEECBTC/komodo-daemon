@@ -126,6 +126,7 @@ public:
 private:
     boost::filesystem::path dataDir;
     std::string previousNetwork;
+    bool fOldTxIndex;
     void CleanGlobals();
 };
 

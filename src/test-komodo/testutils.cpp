@@ -208,6 +208,7 @@ CTransaction getInputTx(CScript scriptPubKey)
 TestChain::TestChain()
 {
     CleanGlobals();
+    fOldTxIndex = fTxIndex;
     previousNetwork = Params().NetworkIDString();
     dataDir = GetTempPath() / strprintf("test_komodo_%li_%i", GetTime(), GetRand(100000));
     if (!chainName.isKMD())
@@ -236,7 +237,7 @@ TestChain::~TestChain()
         SelectParams(CBaseChainParams::REGTEST);
     if (previousNetwork == "test")
         SelectParams(CBaseChainParams::TESTNET);
-
+    fTxIndex = fOldTxIndex;
 }
 
 boost::filesystem::path TestChain::GetDataDir() { return dataDir; }
