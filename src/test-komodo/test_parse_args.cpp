@@ -141,6 +141,17 @@ namespace ParseArgumentsTests {
 
                 mempool.clear();
                 ClearKomodoGlobals();
+                /* chainparams_commandline() call changes mainParams.consensus.nPowTargetSpacing and
+                   nPowTargetSpacing which can be critical for other tests, so restore it */
+                CChainParams& params = Params(CBaseChainParams::MAIN);
+                const Consensus::Params& cons = params.GetConsensus();
+                Consensus::Params& mutableCons = const_cast<Consensus::Params&>(cons);
+                mutableCons.nPowTargetSpacing = 1 * 60;
+                mutableCons.nMaxFutureBlockTime = 7 * 60; // 7 mins
+                params.pchMessageStart[0] = 0xf9;
+                params.pchMessageStart[1] = 0xee;
+                params.pchMessageStart[2] = 0xe4;
+                params.pchMessageStart[3] = 0x8d;
             }
     };
 
