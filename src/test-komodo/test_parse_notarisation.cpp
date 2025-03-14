@@ -656,6 +656,7 @@ TEST(TestParseNotarisation, FilePaths)
     SelectParams(CBaseChainParams::REGTEST);
     {
         // default
+        bool old_IS_KOMODO_NOTARY = IS_KOMODO_NOTARY;
         MockDataDirectory home;
         mapArgs.erase("-datadir");
         ASSETCHAINS_P2PPORT = 0;
@@ -672,9 +673,11 @@ TEST(TestParseNotarisation, FilePaths)
         EXPECT_EQ(DEST_PORT, 0);
         EXPECT_EQ(ASSETCHAINS_P2PPORT, 7770);
         EXPECT_EQ(ASSETCHAINS_RPCPORT, 7771);
+        IS_KOMODO_NOTARY = old_IS_KOMODO_NOTARY;
     }
     {
         // with -datadir
+        bool old_IS_KOMODO_NOTARY = IS_KOMODO_NOTARY;
         MockDataDirectory home;
         mapArgs["-datadir"] = (home.data_path / home.os_dir / home.kmd_dir).string();
         ASSETCHAINS_P2PPORT = 0;
@@ -691,8 +694,10 @@ TEST(TestParseNotarisation, FilePaths)
         EXPECT_EQ(DEST_PORT, 0);
         EXPECT_EQ(ASSETCHAINS_P2PPORT, 7770);
         EXPECT_EQ(ASSETCHAINS_RPCPORT, 7771);
+        IS_KOMODO_NOTARY = old_IS_KOMODO_NOTARY;
     }
     {
+        bool old_IS_KOMODO_NOTARY = IS_KOMODO_NOTARY;
         // with -notary
         MockDataDirectory home;
         mapArgs["-datadir"] = (home.data_path / home.os_dir / home.kmd_dir).string();
@@ -711,6 +716,7 @@ TEST(TestParseNotarisation, FilePaths)
         EXPECT_EQ(DEST_PORT, 5678);
         EXPECT_EQ(ASSETCHAINS_P2PPORT, 7770);
         EXPECT_EQ(ASSETCHAINS_RPCPORT, 7771);
+        IS_KOMODO_NOTARY = old_IS_KOMODO_NOTARY;
     }
 #endif // #ifndef __WINDOWS__
 }
