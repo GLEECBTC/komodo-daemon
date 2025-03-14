@@ -176,7 +176,7 @@ TEST(TestNotary, KomodoNotaries_S7_KMD)
     chainName = assetchain(""); // set as KMD
 
     EXPECT_EQ( getkmdseason(3484958+1), 8);
-    EXPECT_EQ( getkmdseason(8113400), 8);
+    EXPECT_EQ( getkmdseason(8113400), NUM_KMD_SEASONS); // assume the last value in KMD_SEASON_HEIGHTS is 8113400
     EXPECT_EQ( getkmdseason(8113400+1), 0);
     int32_t result1 = komodo_notaries(pubkeys, 3484958+1, 0);
     EXPECT_EQ(result1, 64);
@@ -205,7 +205,7 @@ TEST(TestNotary, KomodoNotaries_S7_AS)
     komodo_notaries_uninit();
     chainName = assetchain("MYASSET");
     EXPECT_EQ( getacseason(1688132253+1), 8);
-    EXPECT_EQ( getacseason(1951328000), 8);
+    EXPECT_EQ( getacseason(1951328000), NUM_KMD_SEASONS); // assume the last value in KMD_SEASON_TIMESTAMPS is 1951328000
     EXPECT_EQ( getacseason(1951328001), 0);
 
     int32_t result1 = komodo_notaries(pubkeys, 0, 1688132253+1);
