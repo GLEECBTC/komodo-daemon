@@ -47,7 +47,7 @@ namespace LegacyEventsTests {
         }
         if (KOMODO_STATES_NUMBER > 0)
             std::cout << "  KOMODO_STATES[0].events size = " << KOMODO_STATES[0].events.size() << std::endl;
-        std::cout << "  IsInitialBlockDownload() = " << IsInitialBlockDownload << std::endl;
+        std::cout << "  IsInitialBlockDownload() = " << IsInitialBlockDownload() << std::endl;
         std::cout << "  chainActive.Height() = " << chainActive.Height() << std::endl;
         std::cout << "  chainActive.Genesis() = " << (chainActive.Genesis() ? chainActive.Genesis()->ToString() : "nullptr") << std::endl;
         std::cout << "  pblocktree = " << pblocktree << std::endl;
