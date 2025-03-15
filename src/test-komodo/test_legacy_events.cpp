@@ -175,7 +175,7 @@ namespace LegacyEventsTests {
                 return std::cout;
             }
 
-            static void SetUpTestSuite() {
+            static void SetUpTestCase() {
                 ASSERT_FALSE(IS_KOMODO_NOTARY) << "IS_KOMODO_NOTARY should be false, for all LegacyEvents tests";
             }
 
