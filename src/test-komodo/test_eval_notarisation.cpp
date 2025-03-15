@@ -322,6 +322,7 @@ TEST(TestEvalNotarisation, test_komodo_notarysinit)
 
 TEST(TestEvalNotarisation, test_komodo_notaries)
 {
+    komodo_notaries_uninit(); // cleanup
     chainName = assetchain();
     // make an empty komodostate file
     boost::filesystem::path temp_path = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
