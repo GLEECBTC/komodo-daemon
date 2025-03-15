@@ -246,7 +246,7 @@ public:
 
 
 ExampleBet ebet;
-
+static uint32_t oldASSETCHAINS_CC;
 
 class TestBet : public ::testing::Test {
 protected:
@@ -259,8 +259,12 @@ protected:
         addKey("UxEHwki3A95PSHHVRzE2N67eHTeoUcqLkovxp6yDPVViv54skF8c");
         // Make playerpubkeys
         for (int i=0; i<playerSecrets.size(); i++) players.push_back(playerSecrets[i].GetPubKey());
+        oldASSETCHAINS_CC = ASSETCHAINS_CC;
         // enable CC
         ASSETCHAINS_CC = 1;
+    }
+    static void TearDownTestCase() {
+        ASSETCHAINS_CC = oldASSETCHAINS_CC;
     }
     virtual void SetUp() {
         EVAL_TEST = 0;

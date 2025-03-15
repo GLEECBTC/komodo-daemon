@@ -27,6 +27,7 @@ namespace TestCoinImport {
 
 static uint8_t testNum = 0;
 static bool fOldTxIndex;
+static uint32_t oldASSETCHAINS_CC;
 
 class TestCoinImport : public ::testing::Test, public Eval {
 public:
@@ -59,10 +60,12 @@ public:
 
 protected:
     static void SetUpTestCase() {
+        oldASSETCHAINS_CC = ASSETCHAINS_CC;
         fOldTxIndex = fTxIndex;
         testChain = std::make_shared<TestChain>();
     }
     static void TearDownTestCase() {
+        ASSETCHAINS_CC = oldASSETCHAINS_CC;
         fTxIndex = fOldTxIndex;
         // TODO: deleteIfUsedBefore(pnotarisations);
         deleteIfUsedBefore(pcoinsTip);
