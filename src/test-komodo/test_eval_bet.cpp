@@ -247,6 +247,7 @@ public:
 
 ExampleBet ebet;
 static uint32_t oldASSETCHAINS_CC;
+static CBlockIndex indexDummy;
 
 class TestBet : public ::testing::Test {
 protected:
@@ -262,6 +263,7 @@ protected:
         oldASSETCHAINS_CC = ASSETCHAINS_CC;
         // enable CC
         ASSETCHAINS_CC = 1;
+        indexDummy.nHeight = 1;
     }
     static void TearDownTestCase() {
         ASSETCHAINS_CC = oldASSETCHAINS_CC;
@@ -269,6 +271,9 @@ protected:
     virtual void SetUp() {
         EVAL_TEST = 0;
         ebet = ExampleBet();
+        /* we should provide same conditions for every komodo_nextheight() inside bet ... */
+        chainActive.SetTip(nullptr); // it will clear vChain
+        chainActive.SetTip(&indexDummy);
     }
 };
 
