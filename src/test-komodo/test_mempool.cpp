@@ -9,6 +9,7 @@
 #include "txmempool.h"
 #include "policy/fees.h"
 #include "util.h"
+#include "testutils.h"
 
 void CreateJoinSplitSignature(CMutableTransaction& mtx, uint32_t consensusBranchId) {
     // Generate an ephemeral keypair.
@@ -117,10 +118,15 @@ public:
     }
 };
 
+static std::string oldNetworkIdStr;
 class Mempool: public ::testing::Test {
     protected:
     static void SetUpTestCase() {
         chainActive.SetTip(nullptr);
+        oldNetworkIdStr = Params().NetworkIDString();
+    }
+    static void TearDownTestCase() {
+        SelectParams(GetNetworkByIdStr(oldNetworkIdStr));
     }
 };
 
