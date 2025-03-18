@@ -424,7 +424,9 @@ TEST(TestParseNotarisation, test_prevMoMheight)
     // empty NPOINTS
     clear_npoints(sp);
     // empty last.MoM
-    const_cast<uint256&>(KOMODO_STATES[1].LastNotarizedMoM()).SetNull();
+    for (int i = 0; i < KOMODO_STATES_NUMBER; ++i) {
+        const_cast<uint256&>(KOMODO_STATES[i].LastNotarizedMoM()).SetNull();
+    }
 
     EXPECT_EQ(komodo_prevMoMheight(), 0);
     uint256 mom;
