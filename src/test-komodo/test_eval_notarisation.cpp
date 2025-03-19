@@ -24,6 +24,8 @@ extern std::map<std::string, std::string> mapArgs;
 
 namespace TestEvalNotarisation {
 
+    int32_t UT_KN_GetHwmHeight();
+    void UT_KN_SetHwmHeight(int32_t newHeight);
 
     class EvalMock : public Eval
     {
@@ -238,6 +240,8 @@ TEST(TestEvalNotarisation, test_komodo_notarysinit)
         write_t_record_new(fp); // write some record to init komodostate for reading in komodo_init()
         fclose(fp);
     }
+    ClearDatadirCache();
+
     // now we can get to testing. Load up the notaries from genesis
     EXPECT_EQ(Pubkeys, nullptr);
     SelectParams(CBaseChainParams::MAIN);
@@ -335,6 +339,7 @@ TEST(TestEvalNotarisation, test_komodo_notaries)
         write_t_record_new(fp);  // write some record to init komodostate for reading in komodo_init()
         fclose(fp);
     }
+    ClearDatadirCache(); // when changing `mapArgs["-datadir"]`, clearing the cache is mandatory. Otherwise, we might end up dealing with the real `komodostate`, among other potential issues.
 
     uint8_t keys[65][33];
     EXPECT_EQ(Pubkeys, nullptr);
