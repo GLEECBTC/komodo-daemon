@@ -43,7 +43,7 @@ This is the official Komodo sourcecode repository based on https://github.com/jl
 - Pegged Assets - Chains that maintain a peg to fiat currencies  
 - Peerchains - Scalability solution where sibling chains form a network of blockchains  
 - Also note you receive **0.01%** (since [KIP-0001](https://github.com/KomodoPlatform/kips/blob/main/kips/kip-0001.mediawiki) active) Active User Reward on your balance.
-[See this post for more details](https://forum.komodoplatform.com/t/komodo-active-user-reward-all-you-need-to-know/435)
+[See this article for more details](https://komodoplatform.com/en/docs/komodo/active-user-reward/)
 
 ## Tech Specification
 - Max Supply: 200 million KMD
