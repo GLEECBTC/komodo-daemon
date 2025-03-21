@@ -18,11 +18,11 @@ function check_git_root() {
   done
 
   if [ "$dir" == "" ]; then
-    echo "$(pwd) is not in a Git repository."
+    echo "$(pwd) is not in a Git repository. Exiting..."
     is_git_root=0
   else
     if [ "$dir" != "$(pwd)" ]; then
-      echo "$(pwd) is not the root of the Git repository."
+      echo "$(pwd) is not the root of the Git repository. Exiting..."
       is_git_root=0
     else
       echo "$(pwd) is the root of the Git repository."
@@ -50,7 +50,7 @@ if [ "$is_git_root" -eq "1" ]; then
     # search for *.a, *.la, *.o, *.lo, *.Plo, *.Po, *.lai, *.dirstamp in all folders starting from .src, including hidden folders,
     # to search only in hidden folders add -path "*/.*" arg to command
     find ./src \( -name "*.a" -o -name "*.la" -o -name "*.o" -o -name "*.lo" -o -name "*.Plo" -o -name "*.Po" -o -name "*.lai" -o -name "*.dirstamp" \) -delete
-
+    echo "Remnant build files deleted!"
 fi
 
 
