@@ -22,6 +22,50 @@ namespace fs = boost::filesystem;
 
 namespace LegacyEventsTests {
 
+    void PrintGlobalVariables()
+    {
+        std::cout << "\n[DEBUG] Global state:" << std::endl;
+        std::cout << "  fPrintToConsole      = " << fPrintToConsole << std::endl;
+        std::cout << "  fPrintToDebugLog     = " << fPrintToDebugLog << std::endl;
+        std::cout << "  STAKED_NOTARY_ID     = " << STAKED_NOTARY_ID << std::endl;
+        std::cout << "  chainName            = " << chainName << std::endl;
+        std::cout << "  KOMODO_REWIND       = " << KOMODO_REWIND << std::endl;
+        std::cout << "  mapArgs size         = " << mapArgs.size() << std::endl;
+        std::cout << "  mapArgs contents:" << std::endl;
+        for (const auto &arg : mapArgs)
+        {
+            std::cout << "    " << arg.first << " : " << arg.second << std::endl;
+        }
+        std::cout << "  mempool.mapTx size   = " << mempool.mapTx.size() << std::endl;
+        std::cout << "  chainActive tip      = " << (chainActive.Tip() ? "set" : "null") << std::endl;
+        std::cout << "  mapBlockIndex size   = " << mapBlockIndex.size() << std::endl;
+        if (!mapBlockIndex.empty())
+        {
+            auto it = mapBlockIndex.begin();
+            std::cout << "  mapBlockIndex first element: key = " << it->first.ToString()
+                      << ", value = " << it->second->ToString() << std::endl;
+        }
+        if (KOMODO_STATES_NUMBER > 0)
+            std::cout << "  KOMODO_STATES[0].events size = " << KOMODO_STATES[0].events.size() << std::endl;
+        std::cout << "  IsInitialBlockDownload() = " << IsInitialBlockDownload() << std::endl;
+        std::cout << "  chainActive.Height() = " << chainActive.Height() << std::endl;
+        std::cout << "  chainActive.Genesis() = " << (chainActive.Genesis() ? chainActive.Genesis()->ToString() : "nullptr") << std::endl;
+        std::cout << "  pblocktree = " << pblocktree << std::endl;
+        std::cout << "  fExperimentalMode=" << fExperimentalMode
+                  << ", fImporting=" << fImporting
+                  << ", fReindex=" << fReindex
+                  << ", fTxIndex=" << fTxIndex
+                  << ", fHavePruned=" << fHavePruned
+                  << ", fPruneMode=" << fPruneMode
+                  << ", fIsBareMultisigStd=" << fIsBareMultisigStd
+                  << ", fCheckBlockIndex=" << fCheckBlockIndex
+                  << ", fCheckpointsEnabled=" << fCheckpointsEnabled
+                  << ", fCoinbaseEnforcedProtectionEnabled=" << fCoinbaseEnforcedProtectionEnabled
+                  << std::endl;
+
+        std::cout << std::endl;
+    }
+
     /* KMD to LTC Nota in KMD chain */
     constexpr const char* strKMDLTCNotaHex = /* 2b4a299ed7c9b3444b9bbfd091783f4f1d4b1b70987505de926312a4ba5d9026 */ "0400008085202f890de75353322bad6580d8d349b47f80362b73d7a391ebf76cb455c9a22da81162d51d000000484730440220436b3772c4f508b8ea0904b7c1c05b93b72dcbbfe284ef98c2314cc7761dd289022044207efe4d61201ba1c3fdaab9aa9b164bf9da983cfdc884532f2556d2e3332001ffffffffc2fb445d59fdf56fbdee6da85182626006e3965f6543b552408a439414784a8f0e00000048473044022053fb98f7e7a99398a2745ca6982e72a0cd29b6dc35eb7d267af60776399ad64c02206435029c413dc68227dcb4055e7f0ffd8cc53d40452d13ad8ad11e762e4b3b4301fffffffff25ba9881d55c5f7e52984ba7b8e708e0a9536335076301b74b8af648af88ba50400000049483045022100c591e4148e583a721e42dadf0c137253913a1613714580e76dcf8a59260d026902205655a76161b912a992e716341c12f43d4f74942c3105b2a4a385631287e3873301ffffffff861026dc3790e6c59292dd8db9581f317e0cf4137283668b7b1686a91291e9770a000000484730440220551301509286c016e05c1db5b6e2a052791cb7295b54cd00f396a05c0cf89dee02200450fee4174fa93b1b5e40b3ff8bc9baec19f45080c1f8c73d452d09783ddd8801ffffffff5703a4413921d8bf3b719678094419f46948b41e4bda01863c11c61f803649db020000004948304502210091c5ccade0b5e4174fbba895bc8105c2f1ca0149c5f8b071f0176b97147e20c00220563254719049becb4f8bb5a50faa737077d378ffc15e93a96f357228182ba5d201ffffffffaf9c7e4cff68ccacc7ae9f1087deaaf136e850738d43a7ed5054b37329df54910600000049483045022100c9561b0754a17f55c4b35d36e46df6d3845b83de88efd565d73bc50e83cbecba0220183865eb8446ad165733b9360d8ab9a0fdda7e73a3114d0feed7352c70d9972f01ffffffff1ed36a28c72c36710e4ae6849ee5f90511341c99f6a34235f150661f4445d2650000000049483045022100c7a7300841d671379f65075405eb85ee2930b417b5ede49ddb83d7717644cebd0220432e9aa745c65a0c30f408b5a9473dc38e1cb375eca5c640c7ed630444d503cf01fffffffff84acac4ddf0c87b9bbb40eadc485b891776153dff371872a4957ad1b40c07b50c0000004948304502210098d3c2b126f6f6022c6982c2a1ba600f575622911bdc1dff0a05fd093044340902207c50e568da145c751be8ded10bef6aabe1d4429f67253dbaac95242e2b8def2901ffffffff508000fa6bd1131fae49413a5ec8b1d3f479314e94527e39063532055aa8edde0700000049483045022100c7cb0a95afd3602ab07d2b9c1f390f3e81f438e555a8adf9fa52b810361920950220488ef1ef6b5fc50590b3d847fbffaaf9868c0f379750f0921acb73512d3a798901ffffffff4de7e7744f14114711defb6bb517bdf0b3edf53013d030da4d5ac7aad45542311300000049483045022100e6a4fe994cfbc028692eee048c4ed8d6dd9c63daa16c644bdd8ae72e3dcea56e02207597d0ceebb6e5a4a5d9802c5b9da2cf37a21f85f344b6acd8577b029410d21201ffffffffc14defef7bbd2dcf06502e18b8b0012fed83f5e644213401c8a1113501df1e6802000000494830450221009f414593f661a7b8c06defa585bdc428dac04234042357ac9a3b11108a26071d02204a862f72675dd8b46f9a1b93d44bd388eb819667bd3e7e7a30266491f8f5710501ffffffffd87d4c2d10fbf27c9800523e05bb43b2599bb9c8e9486b42b012f66c7a6f77ea13000000484730440220047c5eaabd6df36c8bfdd0737a367a12161629aa530c6012241cc36a88fa837d02207eda8879273887b954656e29ba1e98a7dce17cd66061d861e39a12521d6474fa01ffffffff774cdee54eda73eef85696f32c8f4ec8c03977e6536765ef0998482edd7c338e1d00000049483045022100cfb0758d9c1bcbb797d54ad0849b77055f1a2811b559ba2a59aaf38ac4cfb17802202d36f77b6bd9f41281937e39154708e58c82932386fdd8a75ef50d0feeff1c1701ffffffff02f0810100000000002321020e46e79a2a8d12b9b5d12c7a91adb4e454edfae43c0a0cb805427d2ac7613fd9ac00000000000000004a6a48a99470dba8fd1887b7f98e55aebbae41215c45667288662a4a529e70c9a283093c843500238ec4fea5df560a1fe88573a14c31f20c91e31d47ee9f12482bbf8f7a887f1f4b4d440000000000000000000000000000000000000000";
     /*
@@ -131,6 +175,10 @@ namespace LegacyEventsTests {
                 return std::cout;
             }
 
+            static void SetUpTestCase() {
+                ASSERT_FALSE(IS_KOMODO_NOTARY) << "IS_KOMODO_NOTARY should be false, for all LegacyEvents tests";
+            }
+
             void SetUp( ) {
 
                 /* Set environment for each test */
@@ -169,7 +217,13 @@ namespace LegacyEventsTests {
                 fPrintToConsole = false;
 
                 if (!pathDataDir.empty()) {
-                    fs::remove_all(pathDataDir);
+                    komodo_statefile_uninit();
+                    try {
+                        fs::remove_all(pathDataDir);
+                    } catch (const fs::filesystem_error &e) {
+                        std::cerr << "Error removing directory " << pathDataDir.string()
+                                  << ": " << e.what() << std::endl;
+                    }
                 }
 
                 mapArgs.erase("-datadir");

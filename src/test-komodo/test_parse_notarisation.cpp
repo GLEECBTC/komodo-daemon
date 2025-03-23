@@ -423,6 +423,11 @@ TEST(TestParseNotarisation, test_prevMoMheight)
 
     // empty NPOINTS
     clear_npoints(sp);
+    // empty last.MoM
+    for (int i = 0; i < KOMODO_STATES_NUMBER; ++i) {
+        const_cast<uint256&>(KOMODO_STATES[i].LastNotarizedMoM()).SetNull();
+    }
+
     EXPECT_EQ(komodo_prevMoMheight(), 0);
     uint256 mom;
     mom.SetHex("A0");
@@ -626,6 +631,10 @@ TEST(TestParseNotarisation, FilePaths)
             komodo << "rpcuser=" << user << "\n"
                     << "rpcpassword=" << pass << "\n"
                     << "rpcport=" << std::to_string(port) << "\n";
+            komodo.flush();
+            if (!komodo.good()) {
+                return false;
+            }
             return true;
         }
         boost::filesystem::path data_path;
@@ -649,6 +658,7 @@ TEST(TestParseNotarisation, FilePaths)
     SelectParams(CBaseChainParams::REGTEST);
     {
         // default
+        bool old_IS_KOMODO_NOTARY = IS_KOMODO_NOTARY;
         MockDataDirectory home;
         mapArgs.erase("-datadir");
         ASSETCHAINS_P2PPORT = 0;
@@ -657,6 +667,7 @@ TEST(TestParseNotarisation, FilePaths)
         memset(BTCUSERPASS, 0, sizeof(BTCUSERPASS) );
         DEST_PORT=0;
         IS_KOMODO_NOTARY = 0;
+        chainName = assetchain(""); // mandatory assume chain is KMD for this test
         home.create_config(home.kmd_dir / "regtest" / komodo_conf, "test1", "my_password", 1234);
         set_kmd_user_password_port("");
         EXPECT_EQ( std::string(KMDUSERPASS), std::string("test1:my_password") );
@@ -664,9 +675,11 @@ TEST(TestParseNotarisation, FilePaths)
         EXPECT_EQ(DEST_PORT, 0);
         EXPECT_EQ(ASSETCHAINS_P2PPORT, 7770);
         EXPECT_EQ(ASSETCHAINS_RPCPORT, 7771);
+        IS_KOMODO_NOTARY = old_IS_KOMODO_NOTARY;
     }
     {
         // with -datadir
+        bool old_IS_KOMODO_NOTARY = IS_KOMODO_NOTARY;
         MockDataDirectory home;
         mapArgs["-datadir"] = (home.data_path / home.os_dir / home.kmd_dir).string();
         ASSETCHAINS_P2PPORT = 0;
@@ -683,8 +696,10 @@ TEST(TestParseNotarisation, FilePaths)
         EXPECT_EQ(DEST_PORT, 0);
         EXPECT_EQ(ASSETCHAINS_P2PPORT, 7770);
         EXPECT_EQ(ASSETCHAINS_RPCPORT, 7771);
+        IS_KOMODO_NOTARY = old_IS_KOMODO_NOTARY;
     }
     {
+        bool old_IS_KOMODO_NOTARY = IS_KOMODO_NOTARY;
         // with -notary
         MockDataDirectory home;
         mapArgs["-datadir"] = (home.data_path / home.os_dir / home.kmd_dir).string();
@@ -703,6 +718,7 @@ TEST(TestParseNotarisation, FilePaths)
         EXPECT_EQ(DEST_PORT, 5678);
         EXPECT_EQ(ASSETCHAINS_P2PPORT, 7770);
         EXPECT_EQ(ASSETCHAINS_RPCPORT, 7771);
+        IS_KOMODO_NOTARY = old_IS_KOMODO_NOTARY;
     }
 #endif // #ifndef __WINDOWS__
 }

@@ -110,8 +110,9 @@ std::vector<unsigned char> CCSigVec(const CC *cond)
     return ffill;
 }
 
-std::string CCShowStructure(CC *cond)
+std::string CCShowStructure(const CC *cond)
 {
+    if (!cond) return "";
     std::string out;
     if (cc_isAnon(cond)) {
         out = "A" + std::to_string(cc_typeId(cond));

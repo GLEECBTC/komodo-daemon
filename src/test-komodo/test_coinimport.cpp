@@ -13,6 +13,7 @@
 #include "script/interpreter.h"
 #include "script/serverchecker.h"
 #include "txmempool.h"
+#include "txdb.h"
 
 #include "testutils.h"
 
@@ -25,6 +26,8 @@ namespace TestCoinImport {
 
 
 static uint8_t testNum = 0;
+static bool fOldTxIndex;
+static uint32_t oldASSETCHAINS_CC;
 
 class TestCoinImport : public ::testing::Test, public Eval {
 public:
@@ -56,8 +59,20 @@ public:
 
 
 protected:
-    static void SetUpTestCase() { testChain = std::make_shared<TestChain>(); }
-    static void TearDownTestCase() { testChain = nullptr;   };
+    static void SetUpTestCase() {
+        oldASSETCHAINS_CC = ASSETCHAINS_CC;
+        fOldTxIndex = fTxIndex;
+        testChain = std::make_shared<TestChain>();
+    }
+    static void TearDownTestCase() {
+        ASSETCHAINS_CC = oldASSETCHAINS_CC;
+        fTxIndex = fOldTxIndex;
+        // TODO: deleteIfUsedBefore(pnotarisations);
+        deleteIfUsedBefore(pcoinsTip);
+        // TODO: deleteIfUsedBefore(pcoinsdbview);
+        deleteIfUsedBefore(pblocktree);
+        testChain = nullptr;
+    };
 
     virtual void SetUp() {
         ASSETCHAINS_CC = 1;

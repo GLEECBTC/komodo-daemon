@@ -82,7 +82,7 @@ std::vector<unsigned char> CCSigVec(const CC *cond);
 /*
  * Produces a string showing the structure of a CC condition
  */
-std::string CCShowStructure(CC *cond);
+std::string CCShowStructure(const CC *cond);
 
 
 /*

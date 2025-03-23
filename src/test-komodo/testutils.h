@@ -47,6 +47,15 @@ CTransaction getInputTx(CScript scriptPubKey);
 CMutableTransaction spendTx(const CTransaction &txIn, int nOut=0);
 std::vector<uint8_t> getSig(const CMutableTransaction mtx, CScript inputPubKey, int nIn=0);
 
+// Helper function to delete and set to nullptr if not nullptr
+template<typename T>
+void deleteIfUsedBefore(T*& ptr) {
+    if (ptr != nullptr) {
+        delete ptr;
+        ptr = nullptr;
+    }
+}
+
 class TransactionInProcess
 {
 public:
@@ -117,6 +126,7 @@ public:
 private:
     boost::filesystem::path dataDir;
     std::string previousNetwork;
+    bool fOldTxIndex;
     void CleanGlobals();
 };
 
@@ -194,3 +204,13 @@ public:
 private:
     CKey key;
 };
+
+// C++ stream interface
+class TestCout : public std::stringstream {
+    public:
+        ~TestCout();
+};
+
+#define GTEST_COUT_COLOR TestCout()
+#define GTEST_COUT_NOCOLOR std::cerr << "[          ] [ INFO ] "
+CBaseChainParams::Network GetNetworkByIdStr(const std::string& networkIdStr);

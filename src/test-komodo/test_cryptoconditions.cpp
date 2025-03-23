@@ -11,7 +11,7 @@
 
 #include "testutils.h"
 
-
+static uint32_t oldASSETCHAINS_CC;
 
 class CCTest : public ::testing::Test {
 public:
@@ -24,6 +24,14 @@ public:
         tx.vin[0].scriptSig = CCSig(cond);
     }
 protected:
+    // Called once before any test in this suite.
+    static void SetUpTestCase() {
+        oldASSETCHAINS_CC = ASSETCHAINS_CC;
+    }
+    // Called once after all tests in this suite.
+    static void TearDownTestCase() {
+        ASSETCHAINS_CC = oldASSETCHAINS_CC;
+    }
     virtual void SetUp() {
         // enable CC
         ASSETCHAINS_CC = 1;

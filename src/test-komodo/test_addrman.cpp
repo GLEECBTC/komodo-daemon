@@ -13,38 +13,9 @@
 #include "chainparams.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
+#include "testutils.h"
 
 #define NODE_NONE 0
-
-// https://stackoverflow.com/questions/16491675/how-to-send-custom-message-in-google-c-testing-framework/29155677
-#define GTEST_COUT_NOCOLOR std::cerr << "[          ] [ INFO ] "
-namespace testing
-{
-    namespace internal
-    {
-    enum GTestColor {
-        COLOR_DEFAULT,
-        COLOR_RED,
-        COLOR_GREEN,
-        COLOR_YELLOW
-    };
-
-    extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
-    }
-}
-#define PRINTF(...)  do { testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[          ] "); testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, __VA_ARGS__); } while(0)
-
-// C++ stream interface
-class TestCout : public std::stringstream
-{
-    public:
-        ~TestCout()
-        {
-            PRINTF("%s",str().c_str());
-        }
-};
-
-#define GTEST_COUT_COLOR TestCout()
 
 using namespace std;
 

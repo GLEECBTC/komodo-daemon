@@ -9,6 +9,7 @@
 #include "txmempool.h"
 #include "policy/fees.h"
 #include "util.h"
+#include "testutils.h"
 
 void CreateJoinSplitSignature(CMutableTransaction& mtx, uint32_t consensusBranchId) {
     // Generate an ephemeral keypair.
@@ -117,7 +118,19 @@ public:
     }
 };
 
-TEST(Mempool, PriorityStatsDoNotCrash) {
+static std::string oldNetworkIdStr;
+class Mempool: public ::testing::Test {
+    protected:
+    static void SetUpTestCase() {
+        chainActive.SetTip(nullptr);
+        oldNetworkIdStr = Params().NetworkIDString();
+    }
+    static void TearDownTestCase() {
+        SelectParams(GetNetworkByIdStr(oldNetworkIdStr));
+    }
+};
+
+TEST_F(Mempool, PriorityStatsDoNotCrash) {
     // Test for security issue 2017-04-11.a
     // https://z.cash/blog/security-announcement-2017-04-12.html
 
@@ -149,7 +162,7 @@ TEST(Mempool, PriorityStatsDoNotCrash) {
 
 CCriticalSection& get_cs_main(); // in main.cpp
 
-TEST(Mempool, TxInputLimit) {
+TEST_F(Mempool, TxInputLimit) {
     SelectParams(CBaseChainParams::REGTEST);
 
     CTxMemPool pool(::minRelayTxFee);
@@ -215,7 +228,7 @@ TEST(Mempool, TxInputLimit) {
 }
 
 // Valid overwinter v3 format tx gets rejected because overwinter hasn't activated yet.
-TEST(Mempool, OverwinterNotActiveYet) {
+TEST_F(Mempool, OverwinterNotActiveYet) {
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT);
 
@@ -243,7 +256,7 @@ TEST(Mempool, OverwinterNotActiveYet) {
 // 1. pass CheckTransaction (and CheckTransactionWithoutProofVerification)
 // 2. pass ContextualCheckTransaction
 // 3. fail IsStandardTx
-TEST(Mempool, SproutV3TxFailsAsExpected) {
+TEST_F(Mempool, SproutV3TxFailsAsExpected) {
     SelectParams(CBaseChainParams::TESTNET);
 
     CTxMemPool pool(::minRelayTxFee);
@@ -264,7 +277,7 @@ TEST(Mempool, SproutV3TxFailsAsExpected) {
 // Sprout transaction version 3 when Overwinter is always active:
 // 1. pass CheckTransaction (and CheckTransactionWithoutProofVerification)
 // 2. fails ContextualCheckTransaction
-TEST(Mempool, SproutV3TxWhenOverwinterActive) {
+TEST_F(Mempool, SproutV3TxWhenOverwinterActive) {
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
 
@@ -289,7 +302,7 @@ TEST(Mempool, SproutV3TxWhenOverwinterActive) {
 // Sprout transaction with negative version, rejected by the mempool in CheckTransaction
 // under Sprout consensus rules, should still be rejected under Overwinter consensus rules.
 // 1. fails CheckTransaction (specifically CheckTransactionWithoutProofVerification)
-TEST(Mempool, SproutNegativeVersionTxWhenOverwinterActive) {
+TEST_F(Mempool, SproutNegativeVersionTxWhenOverwinterActive) {
     SelectParams(CBaseChainParams::REGTEST);
     UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, Consensus::NetworkUpgrade::ALWAYS_ACTIVE);
 

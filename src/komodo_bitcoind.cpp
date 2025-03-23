@@ -1050,6 +1050,7 @@ bool komodo_checkpoint(int32_t *notarized_heightp, int32_t nHeight, uint256 hash
 
 int32_t komodo_nextheight()
 {
+    /* TODO: Probably it shouldn't rely on komodo_longestchain() in ANY way ... */
     //AssertLockHeld(cs_main);
     LOCK(cs_main); // assume usually called without lock 
     CBlockIndex *pindex; int32_t ht;

@@ -208,6 +208,7 @@ CTransaction getInputTx(CScript scriptPubKey)
 TestChain::TestChain()
 {
     CleanGlobals();
+    fOldTxIndex = fTxIndex;
     previousNetwork = Params().NetworkIDString();
     dataDir = GetTempPath() / strprintf("test_komodo_%li_%i", GetTime(), GetRand(100000));
     if (!chainName.isKMD())
@@ -236,7 +237,7 @@ TestChain::~TestChain()
         SelectParams(CBaseChainParams::REGTEST);
     if (previousNetwork == "test")
         SelectParams(CBaseChainParams::TESTNET);
-
+    fTxIndex = fOldTxIndex;
 }
 
 boost::filesystem::path TestChain::GetDataDir() { return dataDir; }
@@ -901,4 +902,35 @@ bool TestWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey, C
         }
     }
     return true;
+}
+
+// https://stackoverflow.com/questions/16491675/how-to-send-custom-message-in-google-c-testing-framework/29155677
+namespace testing
+{
+    namespace internal
+    {
+    enum GTestColor {
+        COLOR_DEFAULT,
+        COLOR_RED,
+        COLOR_GREEN,
+        COLOR_YELLOW
+    };
+
+    extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
+    }
+}
+#define PRINTF(...)  do { testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[          ] "); testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, __VA_ARGS__); } while(0)
+
+TestCout::~TestCout() {
+    PRINTF("%s", str().c_str());
+}
+
+CBaseChainParams::Network GetNetworkByIdStr(const std::string& networkIdStr) {
+    static const std::unordered_map<std::string, CBaseChainParams::Network> networkMap{
+        {"main", CBaseChainParams::MAIN},
+        {"test", CBaseChainParams::TESTNET},
+        {"regtest", CBaseChainParams::REGTEST}
+    };
+    auto it = networkMap.find(networkIdStr);
+    return (it != networkMap.end() ? it->second : CBaseChainParams::REGTEST); // if not found return REGTEST
 }

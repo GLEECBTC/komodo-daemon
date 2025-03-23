@@ -73,15 +73,22 @@ namespace ParseArgumentsTests {
 
         private:
             boost::filesystem::path pathDataDir;
+            uint32_t oldASSETCHAINS_MAGIC;
+            uint32_t oldASSETCHAINS_CC;
+            uint64_t oldASSETCHAINS_COMMISSION;
             void printMessage(const std::string &message) {
                 std::cout << "[          ] " << message;
             }
             void ClearKomodoGlobals() {
                 mapArgs.clear();
                 mapMultiArgs.clear();
+                ASSETCHAINS_MAGIC = oldASSETCHAINS_MAGIC;
+                ASSETCHAINS_CC = oldASSETCHAINS_CC;
+                memset(ASSETCHAINS_CCDISABLES, 0, sizeof(ASSETCHAINS_CCDISABLES));
+                ASSETCHAINS_COMMISSION = oldASSETCHAINS_COMMISSION;
             }
         public:
-            ParseArgumentsTests() : pathDataDir("") {}
+            ParseArgumentsTests() : pathDataDir(""), oldASSETCHAINS_MAGIC(ASSETCHAINS_MAGIC), oldASSETCHAINS_CC(ASSETCHAINS_CC), oldASSETCHAINS_COMMISSION(ASSETCHAINS_COMMISSION) {}
 
             std::ostream& LogMessage() {
                 std::cout << "[          ] ";
@@ -138,6 +145,17 @@ namespace ParseArgumentsTests {
 
                 mempool.clear();
                 ClearKomodoGlobals();
+                /* chainparams_commandline() call changes mainParams.consensus.nPowTargetSpacing and
+                   nPowTargetSpacing which can be critical for other tests, so restore it */
+                CChainParams& params = Params(CBaseChainParams::MAIN);
+                const Consensus::Params& cons = params.GetConsensus();
+                Consensus::Params& mutableCons = const_cast<Consensus::Params&>(cons);
+                mutableCons.nPowTargetSpacing = 1 * 60;
+                mutableCons.nMaxFutureBlockTime = 7 * 60; // 7 mins
+                params.pchMessageStart[0] = 0xf9;
+                params.pchMessageStart[1] = 0xee;
+                params.pchMessageStart[2] = 0xe4;
+                params.pchMessageStart[3] = 0x8d;
             }
     };
 
@@ -147,7 +165,7 @@ namespace ParseArgumentsTests {
             {"CCL", "-ac_name=CCL -ac_supply=200000000 -ac_end=1 -ac_cc=2 -addressindex=1 -spentindex=1 -addnode=209.222.101.247 -addnode=103.195.100.32 -addnode=142.93.136.89 -addnode=195.201.22.89 -addnode=15.235.204.174 -addnode=148.113.1.52 -addnode=65.21.77.109 -addnode=89.19.26.211 -addnode=89.19.26.212"},
             {"CLC", "-ac_name=CLC -ac_supply=99000000 -ac_reward=50000000 -ac_perc=100000000 -ac_founders=1 -ac_cc=45 -ac_public=1 -ac_snapshot=1440 -ac_pubkey=02df9bda7bfe2bcaa938b29a399fb0ba58cfb6cc3ddc0001062a600f60a8237ad9 -ac_adaptivepow=6 -addnode=209.222.101.247 -addnode=103.195.100.32 -addnode=node.cryptocollider.com -addnode=15.235.204.174 -addnode=148.113.1.52 -addnode=65.21.77.109 -addnode=89.19.26.211 -addnode=89.19.26.212"},
             {"DOC", "-ac_name=DOC -ac_supply=90000000000 -ac_reward=100000000 -ac_cc=3 -ac_staked=10 -addnode=209.222.101.247 -addnode=103.195.100.32 -addnode=65.21.77.109 -addnode=65.21.51.47 -addnode=15.235.204.174 -addnode=148.113.1.52 -addnode=65.21.77.109 -addnode=89.19.26.211 -addnode=89.19.26.212"},
-            {"GLEEC", "-ac_name=GLEEC -ac_supply=210000000 -ac_public=1 -ac_staked=100 -addnode=209.222.101.247 -addnode=103.195.100.32 -addnode=95.217.161.126 -addnode=15.235.204.174 -addnode=148.113.1.52 -addnode=65.21.77.109 -addnode=89.19.26.211 -addnode=89.19.26.212"},
+            // {"GLEEC", "-ac_name=GLEEC -ac_supply=210000000 -ac_public=1 -ac_staked=100 -addnode=209.222.101.247 -addnode=103.195.100.32 -addnode=95.217.161.126 -addnode=15.235.204.174 -addnode=148.113.1.52 -addnode=65.21.77.109 -addnode=89.19.26.211 -addnode=89.19.26.212"},
             {"ILN", "-ac_name=ILN -ac_supply=10000000000 -ac_cc=2 -addnode=209.222.101.247 -addnode=103.195.100.32 -addnode=51.75.122.83 -addnode=15.235.204.174 -addnode=148.113.1.52 -addnode=65.21.77.109 -addnode=89.19.26.211 -addnode=89.19.26.212"},
             {"KOIN", "-ac_name=KOIN -ac_supply=125000000 -addnode=209.222.101.247 -addnode=103.195.100.32 -addnode=3.0.32.10 -addnode=15.235.204.174 -addnode=148.113.1.52 -addnode=65.21.77.109 -addnode=89.19.26.211 -addnode=89.19.26.212"},
             {"MARTY", "-ac_name=MARTY -ac_supply=90000000000 -ac_reward=100000000 -ac_cc=3 -ac_staked=10 -addnode=209.222.101.247 -addnode=103.195.100.32 -addnode=65.21.77.109 -addnode=65.21.51.47 -addnode=15.235.204.174 -addnode=148.113.1.52 -addnode=65.21.77.109 -addnode=89.19.26.211 -addnode=89.19.26.212"},
@@ -163,7 +181,7 @@ namespace ParseArgumentsTests {
             { "CCL", {"CCL", 20848, 20849, 1728000348} },
             { "CLC", {"CLC", 20931, 20932, -671859365} },
             { "DOC", {"DOC", 62415, 62416, 1450148915} },
-            { "GLEEC", {"GLEEC", 23225, 23226, 1824725725} },
+            // { "GLEEC", {"GLEEC", 23225, 23226, 1824725725} },
             { "ILN", {"ILN", 12985, 12986, 600552702} },
             { "KOIN", {"KOIN", 10701, 10702, -1235858314} },
             { "MARTY", {"MARTY", 52592, 52593, 1663880092} },

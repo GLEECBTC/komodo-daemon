@@ -24,6 +24,8 @@ extern std::map<std::string, std::string> mapArgs;
 
 namespace TestEvalNotarisation {
 
+    int32_t UT_KN_GetHwmHeight();
+    void UT_KN_SetHwmHeight(int32_t newHeight);
 
     class EvalMock : public Eval
     {
@@ -225,6 +227,8 @@ static void write_t_record_new(std::FILE* fp)
 
 TEST(TestEvalNotarisation, test_komodo_notarysinit)
 {
+    komodo_notaries_uninit(); // cleanup
+
     // make an empty komodostate file
     boost::filesystem::path temp_path = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
     boost::filesystem::create_directories(temp_path);
@@ -236,6 +240,8 @@ TEST(TestEvalNotarisation, test_komodo_notarysinit)
         write_t_record_new(fp); // write some record to init komodostate for reading in komodo_init()
         fclose(fp);
     }
+    ClearDatadirCache();
+
     // now we can get to testing. Load up the notaries from genesis
     EXPECT_EQ(Pubkeys, nullptr);
     SelectParams(CBaseChainParams::MAIN);
@@ -250,6 +256,7 @@ TEST(TestEvalNotarisation, test_komodo_notarysinit)
     uint8_t new_notaries[64][33];
     memcpy(new_notaries[0], new_key, 33);
 
+    komodo_notaries_uninit(); // clear hwmheight once again
     // attempt to update with 1 key to an existing height
     komodo_notarysinit(0, new_notaries, 1);
     EXPECT_EQ(Pubkeys[0].height, 0);
@@ -320,6 +327,7 @@ TEST(TestEvalNotarisation, test_komodo_notarysinit)
 
 TEST(TestEvalNotarisation, test_komodo_notaries)
 {
+    komodo_notaries_uninit(); // cleanup
     chainName = assetchain();
     // make an empty komodostate file
     boost::filesystem::path temp_path = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
@@ -331,6 +339,7 @@ TEST(TestEvalNotarisation, test_komodo_notaries)
         write_t_record_new(fp);  // write some record to init komodostate for reading in komodo_init()
         fclose(fp);
     }
+    ClearDatadirCache(); // when changing `mapArgs["-datadir"]`, clearing the cache is mandatory. Otherwise, we might end up dealing with the real `komodostate`, among other potential issues.
 
     uint8_t keys[65][33];
     EXPECT_EQ(Pubkeys, nullptr);

@@ -537,3 +537,9 @@ void komodo_notaries_uninit()
         Pubkeys = nullptr;
     }
 }
+
+/* only for unit tests */
+namespace TestEvalNotarisation {
+    int32_t UT_KN_GetHwmHeight() { return hwmheight; }
+    void UT_KN_SetHwmHeight(int32_t newHeight) { hwmheight = newHeight; }
+}

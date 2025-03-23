@@ -4,8 +4,20 @@
 #include "pow.h"
 #include "random.h"
 #include <gtest/gtest.h>
+#include "testutils.h"
 
-TEST(PoW, DifficultyAveraging) {
+static std::string oldNetworkIdStr;
+class PoW: public ::testing::Test {
+    protected:
+    static void SetUpTestCase() {
+        oldNetworkIdStr = Params().NetworkIDString();
+    }
+    static void TearDownTestCase() {
+        SelectParams(GetNetworkByIdStr(oldNetworkIdStr));
+    }
+};
+
+TEST_F(PoW, DifficultyAveraging) {
     SelectParams(CBaseChainParams::MAIN);
     const Consensus::Params& params = Params().GetConsensus();
     size_t lastBlk = 2*params.nPowAveragingWindow;
@@ -69,7 +81,7 @@ TEST(PoW, DifficultyAveraging) {
               GetNextWorkRequired(&blocks[lastBlk], nullptr, params));
 }
 
-TEST(PoW, MinDifficultyRules) {
+TEST_F(PoW, MinDifficultyRules) {
     SelectParams(CBaseChainParams::TESTNET);
     const Consensus::Params& params = Params().GetConsensus();
     size_t lastBlk = 2*params.nPowAveragingWindow;

@@ -5,6 +5,7 @@
 #include "komodo_utils.h"
 #include "komodo_hardfork.h"
 #include "txdb.h"
+#include "testutils.h"
 
 #include <iostream>
 #include <vector>
@@ -140,18 +141,12 @@ namespace GMPArithTests
         return tx;
     }
 
-    // Helper function to delete and set to nullptr if not nullptr
-    template<typename T>
-    void deleteIfUsedBefore(T*& ptr) {
-        if (ptr != nullptr) {
-            delete ptr;
-            ptr = nullptr;
-        }
-    }
-
     TEST(GMPArithTests, RewardsTest)
     {
+        std::string oldNetworkIdStr = Params().NetworkIDString();
+        SelectParams(CBaseChainParams::REGTEST);
 
+        bool fTxIndexOld = fTxIndex;
         bool fPrintToConsoleOld = fPrintToConsole;
         assetchain assetchainOld = chainName; // save the chainName before test
         chainName = assetchain("OTHER");      // considering this is not KMD
@@ -318,6 +313,9 @@ namespace GMPArithTests
 
         fPrintToConsole = fPrintToConsoleOld;
         chainName = assetchainOld; // restore saved values
+        fTxIndex = fTxIndexOld;
+
+        SelectParams(GetNetworkByIdStr(oldNetworkIdStr));
 
         if (fRewardTestFailure) {
             FAIL() << RewardTestErrorMessage;

@@ -47,6 +47,10 @@ public:
         return symbol_; 
     }
     bool SymbolStartsWith(const std::string& in) { return symbol_.find(in) == 0; }
+    friend std::ostream& operator<<(std::ostream& os, const assetchain& chain) {
+        os << (chain.symbol_.empty() ? "KMD" : chain.symbol_);
+        return os;
+    }
 private:
     std::string symbol_;
 };

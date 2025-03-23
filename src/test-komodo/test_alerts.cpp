@@ -305,6 +305,11 @@ TEST_F(TestAlerts, AlertApplies)
 
 TEST_F(TestAlerts, AlertNotify)
 {
+    // We should consider the case where PartitionAlert is triggered before AlertNotify.
+    // In this case, the alertnotify_file will exist and contain WARNING messages,
+    // so we should delete it before running this test...
+    boost::filesystem::remove( alertnotify_file);
+
     SetMockTime(11);
     const std::vector<unsigned char>& alertKey{pubKey.begin(), pubKey.end()};
 

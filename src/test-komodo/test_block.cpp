@@ -38,7 +38,7 @@ TEST(test_block, TestStopAt)
 
 TEST(test_block, TestConnectWithoutChecks)
 {
-    TestChain chain;
+    TestChain chain; /* for this tests ASSETCHAINS_CC, ASSETCHAINS_COMMISSION should be 0 */
     auto notary = std::make_shared<TestWallet>(chain.getNotaryKey(), "notary");
     auto alice = std::make_shared<TestWallet>("alice");
     std::shared_ptr<CBlock> lastBlock = chain.generateBlock(notary); // genesis block
