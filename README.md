@@ -30,7 +30,6 @@ This is the official Komodo sourcecode repository based on https://github.com/jl
 - API references & Dev Documentation: [https://developers.komodoplatform.com](https://developers.komodoplatform.com/)
 - Blog: [https://blog.komodoplatform.com](https://blog.komodoplatform.com/)
 - Whitepaper: [Komodo Whitepaper](https://komodoplatform.com/whitepaper)
-- Komodo Platform public material: [Komodo Platform public material](https://docs.google.com/document/d/1AbhWrtagu4vYdkl-vsWz-HSNyNvK-W-ZasHCqe7CZy0)
 
 ## List of Komodo Platform Technologies
 
@@ -43,18 +42,17 @@ This is the official Komodo sourcecode repository based on https://github.com/jl
 - Assetchains - Create your own Blockchain that inherits all Komodo Platform functionalities and blockchain interoperability  
 - Pegged Assets - Chains that maintain a peg to fiat currencies  
 - Peerchains - Scalability solution where sibling chains form a network of blockchains  
-- More in depth covered [here](https://docs.google.com/document/d/1AbhWrtagu4vYdkl-vsWz-HSNyNvK-W-ZasHCqe7CZy0)  
-- Also note you receive 5% Active User Reward on your balance.  
-[See this article for more details](https://support.komodoplatform.com/en/support/solutions/articles/29000024515-how-to-claim-the-kmd-active-user-reward-in-agama)
+- Also note you receive **0.01%** (since [KIP-0001](https://github.com/KomodoPlatform/kips/blob/main/kips/kip-0001.mediawiki) active) Active User Reward on your balance.
+[See this article for more details](https://komodoplatform.com/en/docs/komodo/active-user-reward/)
 
 ## Tech Specification
 - Max Supply: 200 million KMD
 - Block Time: 60 seconds
-- Block Reward: 3 KMD
+- Block Reward: **1 KMD** (since [KIP-0002](https://github.com/KomodoPlatform/kips/blob/main/kips/kip-0002.mediawiki) active)
 - Mining Algorithm: Equihash
 
 ## About this Project
-Komodo is based on Zcash and has been extended by our innovative consensus algorithm called dPoW which utilizes Bitcoin's hashrate to store Komodo blockchain information into the Bitcoin blockchain. Other new and native Komodo features are the privacy technology called JUMBLR, our assetchain capabilities (one click plug and play blockchain solutions) and a set of financial decentralization and interoperability technologies. More details are available under https://komodoplatform.com/ and https://blog.komodoplatform.com.
+Komodo is based on Zcash and has been extended by our innovative consensus algorithm called dPoW which utilizes Bitcoin's hashrate to store Komodo blockchain information into the Bitcoin blockchain. To further enhance cost-effectiveness while maintaining strong security, the process of anchoring our blockchain data has been transitioned from the Bitcoin blockchain to the *Litecoin blockchain*, offering a cheaper yet equally robust solution. Other new and native Komodo features are the privacy technology called JUMBLR, our assetchain capabilities (one click plug and play blockchain solutions) and a set of financial decentralization and interoperability technologies. More details are available under https://komodoplatform.com/ and https://blog.komodoplatform.com.
 
 ## Getting started
 
