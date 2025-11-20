@@ -114,7 +114,7 @@ function fetch_params {
             fi
         done
 
-        "$SHA256CMD" $SHA256ARGS -c <<EOF
+        "$SHA256CMD" $SHA256ARGS -c -<<EOF
 $expectedhash  $dlname
 EOF
 
