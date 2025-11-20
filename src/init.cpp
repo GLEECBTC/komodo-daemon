@@ -1076,6 +1076,31 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     std::set_new_handler(new_handler_terminate);
 
+    // ********************************************************* Step: Pre-checks
+
+    boost::filesystem::path pathToCheck = GetDataDir() / "debug.log";
+    // Simple permission sanity-check for files inside datadir. If the daemon
+    // was started in Docker (root by default), debug.log may be owned by root
+    // and later non-root runs would hit segfaults/crashes when trying to write.
+    if (boost::filesystem::exists(pathToCheck)) {
+        auto can_open = [&](const char* mode) -> bool {
+            FILE* file = fopen(pathToCheck.string().c_str(), mode);
+            if (file == NULL) {
+                return false;
+            }
+            fclose(file);
+            return true;
+        };
+
+        const bool canRead = can_open("r");
+        const bool canWrite = can_open("a");
+
+        if (!canRead || !canWrite) {
+            return InitError(strprintf(_("Incorrect permissions on \"%s\"; ensure the current user can read and write this file. (Consider auditing the entire datadir \"%s\" for similar issues.)"),
+                pathToCheck.string(), GetDataDir().string()));
+        }
+    }
+
     // ********************************************************* Step 2: parameter interactions
     const CChainParams& chainparams = Params();
 
