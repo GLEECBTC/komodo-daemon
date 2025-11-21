@@ -29,6 +29,7 @@
 #include "importcoin.h"
 #include "chainparams.h"
 #include "checkpoints.h"
+#include "Gulden/auto_checkpoints.h"
 #include "checkqueue.h"
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
@@ -5370,6 +5371,11 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
             }
         }
     }
+
+    // Gulden: check that the block satisfies synchronized checkpoint
+    if (!Checkpoints::CheckSync(hash, pindexPrev))
+        return state.DoS(100, error("%s: rejected by sync checkpoint lock-in at %d", __func__, nHeight), REJECT_CHECKPOINT, "sync checkpoint mismatch");
+
     // Reject block.nVersion < 4 blocks
     if (block.nVersion < 4)
         return state.Invalid(error("%s : rejected nVersion<4 block", __func__),
@@ -5805,6 +5811,16 @@ bool ProcessNewBlock(bool from_miner, int32_t height, CValidationState &state, C
 
     if (futureblock == 0 && !ActivateBestChain(false, state, pblock))
         return error("%s: ActivateBestChain failed", __func__);
+
+    if (!IsInitialBlockDownload())
+    {
+        // Gulden: if responsible for sync-checkpoint send it
+        if (!CSyncCheckpoint::strMasterPrivKey.empty())
+            Checkpoints::SendSyncCheckpoint(Checkpoints::AutoSelectSyncCheckpoint());
+    }
+    
+    // Gulden: check pending sync-checkpoint
+    Checkpoints::AcceptPendingSyncCheckpoint();
 
     return true;
 }
@@ -6284,6 +6300,12 @@ bool static LoadBlockIndexDB()
         // runs, which makes it return 0, so we guess 50% for now
         progress = (longestchain > 0 ) ? (double) chainActive.Height() / longestchain : 0.5;
     }
+
+    // Gulden: load hashSyncCheckpoint
+    CCheckpointsDB CheckpointsDB;
+    CheckpointsDB.ReadSyncCheckpoint(Checkpoints::hashSyncCheckpoint);
+    LogPrintf("LoadBlockIndexDB(): using synchronized checkpoint %s\n", Checkpoints::hashSyncCheckpoint.ToString().c_str());
+
     LogPrintf("%s: hashBestChain=%s height=%d date=%s progress=%f\n", __func__,
               chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
               DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
@@ -6655,6 +6677,22 @@ bool InitBlockIndex()
                 return error("LoadBlockIndex(): genesis block not accepted");
             if (!ActivateBestChain(true, state, &block))
                 return error("LoadBlockIndex(): genesis block cannot be activated");
+
+            // Gulden: initialize synchronized checkpoint
+            CCheckpointsDB CheckpointsDB;
+            if (!CheckpointsDB.WriteSyncCheckpoint(Params().GenesisBlock().GetHash()))
+                return error("LoadBlockIndex() : failed to init sync checkpoint");
+            std::string strPubKey;
+            std::string strPubKeyComp = GetBoolArg("-testnet", false) ? CSyncCheckpoint::strMasterPubKeyTestnet : CSyncCheckpoint::strMasterPubKey;
+            if (!CheckpointsDB.ReadCheckpointPubKey(strPubKey) || strPubKey != strPubKeyComp)
+            {
+                // write checkpoint master key to db
+                if (!CheckpointsDB.WriteCheckpointPubKey(strPubKeyComp))
+                    return error("LoadBlockIndex() : failed to write new checkpoint master key to db");
+                if (!Checkpoints::ResetSyncCheckpoint())
+                    return error("LoadBlockIndex() : failed to reset sync-checkpoint");
+            }
+
             // Force a chainstate write so that when we VerifyDB in a moment, it doesn't check stale data
             if ( KOMODO_NSPV_FULLNODE )
                 return FlushStateToDisk(state, FLUSH_STATE_ALWAYS);
@@ -8132,6 +8170,21 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 // a different signature key, etc.
                 Misbehaving(pfrom->GetId(), 10);
             }
+        }
+    }
+
+    else if (strCommand == "checkpoint")
+    {
+        CSyncCheckpoint checkpoint;
+        vRecv >> checkpoint;
+
+        if (checkpoint.ProcessSyncCheckpoint(pfrom))
+        {
+            // Relay
+            pfrom->hashCheckpointKnown = checkpoint.hashCheckpoint;
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes)
+                checkpoint.RelayTo(pnode);
         }
     }
 

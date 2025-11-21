@@ -349,6 +349,7 @@ public:
     CRollingBloomFilter addrKnown;
     bool fGetAddr;
     std::set<uint256> setKnown;
+    uint256 hashCheckpointKnown;
 
     /** Number of addr messages that can be processed from this peer. Start at 1 to
      *  permit self-announcement. */
