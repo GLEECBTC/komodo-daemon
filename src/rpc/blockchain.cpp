@@ -23,6 +23,7 @@
 #include "chain.h"
 #include "chainparams.h"
 #include "checkpoints.h"
+#include "Gulden/auto_checkpoints.h"
 #include "crosschain.h"
 #include "base58.h"
 #include "consensus/validation.h"
@@ -1425,6 +1426,21 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp, const CPubKey& my
     SproutMerkleTree tree;
     pcoinsTip->GetSproutAnchorAt(pcoinsTip->GetBestAnchor(SPROUT), tree);
     obj.push_back(Pair("commitments",           static_cast<uint64_t>(tree.size())));
+
+    int nHeight = chainActive.Height();
+    int64_t timestamp = komodo_heightstamp(nHeight);
+    {
+        LOCK(Checkpoints::cs_hashSyncCheckpoint);
+        if (Checkpoints::IsSyncCheckpointUpgradeActive(nHeight, timestamp)) {
+            CBlockIndex *psyncCheckpoint = Checkpoints::GetLastSyncCheckpoint();
+            UniValue blockinfo(UniValue::VOBJ);
+            if (psyncCheckpoint) {
+                blockinfo.push_back(Pair("height", psyncCheckpoint->nHeight));
+                blockinfo.push_back(Pair("blockHash", psyncCheckpoint->phashBlock ? (*psyncCheckpoint->phashBlock).GetHex() : uint256().GetHex()));
+            }
+            obj.push_back(Pair("syncCheckpoint", blockinfo));
+        }
+    }
 
     CBlockIndex* tip = chainActive.Tip();
     obj.pushKV("chainSupply", ValuePoolDesc(boost::none, tip->nChainTotalSupply, boost::none));

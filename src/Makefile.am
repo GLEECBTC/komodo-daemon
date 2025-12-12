@@ -317,6 +317,7 @@ libbitcoin_server_a_SOURCES = \
   txmempool.cpp \
   validationinterface.cpp \
   Gulden/auto_checkpoints.cpp \
+  Gulden/auto_checkpoints_activation.cpp \
   $(BITCOIN_CORE_H) \
   $(LIBZCASH_H)
 

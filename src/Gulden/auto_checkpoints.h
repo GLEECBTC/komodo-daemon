@@ -2,28 +2,84 @@
 // Copyright (c) 2011-2013 The PPCoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+/******************************************************************************
+ * Copyright © 2025 The SuperNET Developers.                                  *
+ *                                                                            *
+ * See the AUTHORS, DEVELOPER-AGREEMENT and LICENSE files at                  *
+ * the top-level directory of this distribution for the individual copyright  *
+ * holder information and the developer policies on copyright and licensing.  *
+ *                                                                            *
+ * Unless otherwise agreed in a custom licensing agreement, no part of the    *
+ * SuperNET software, including this file may be copied, modified, propagated *
+ * or distributed except according to the terms contained in the LICENSE file *
+ *                                                                            *
+ * Removal or modification of this copyright notice is prohibited.            *
+ *                                                                            *
+ ******************************************************************************/
+
 #ifndef GULDEN_AUTO_CHECKPOINT_H
 #define  GULDEN_AUTO_CHECKPOINT_H
 
 #include <map>
+#include <vector>
+#include <string>
+#include "core_io.h"
+#include "key.h"
 #include "net.h"
 #include "util.h"
+#include "txdb.h"
+#include "fs.h"
+#include "streams.h"
 
 class uint256;
 class CBlockIndex;
-class CSyncCheckpoint;
+class CSyncChkptMessage;
+
+// Komodo added
+namespace Checkpoints
+{
+    // Asset or KMD chain sync checkpoint activation params
+    struct CSyncChkParams {
+        int64_t activeAt;
+        std::string masterPubKey;
+    };
+	extern bool fTryInitDone;
+
+	struct CSyncCheckpoint {
+        uint256 hash;
+
+		ADD_SERIALIZE_METHODS;
+		template <typename Stream, typename Operation>
+		inline void SerializationOp(Stream& s, Operation ser_action)
+		{
+			READWRITE(hash);
+		}
+
+		CSyncCheckpoint() : hash(uint256()) {}
+		CSyncCheckpoint(uint256 hashIn) : hash(hashIn) {}
+		bool IsNull() { return hash.IsNull(); }
+		uint256 GetHash() { return hash; }
+		std::string ToString() const {
+			std::ostringstream ss;
+			ss << hash.ToString();
+			return ss.str();
+		} 
+    };
+}
 
 namespace Checkpoints
 {
-	extern uint256 hashSyncCheckpoint;
-	extern uint256 hashPendingCheckpoint;
-	extern CSyncCheckpoint checkpointMessage;
-	extern CSyncCheckpoint checkpointMessagePending;
-	extern uint256 hashInvalidCheckpoint;
+	extern CSyncCheckpoint syncCheckpoint;
+	extern CSyncCheckpoint pendingCheckpoint;
+	extern CSyncChkptMessage checkpointMessage;
+	extern CSyncChkptMessage checkpointMessagePending;
+	extern CSyncCheckpoint invalidCheckpoint;
 	extern CCriticalSection cs_hashSyncCheckpoint;
 	extern CBlockIndex* GetLastSyncCheckpoint();
-	extern bool ValidateSyncCheckpoint(uint256 hashCheckpoint);
-	extern bool WriteSyncCheckpoint(const uint256& hashCheckpoint);
+	extern bool ValidateSyncCheckpoint(CSyncCheckpoint hashCheckpoint);
+	extern bool ReadSyncCheckpoint(CSyncCheckpoint& hashCheckpoint);
+	extern bool WriteSyncCheckpoint(const CSyncCheckpoint& hashCheckpoint);
 	extern bool AcceptPendingSyncCheckpoint();
 	extern uint256 AutoSelectSyncCheckpoint();
 	extern bool CheckSync(const uint256& hashBlock, const CBlockIndex* pindexPrev);
@@ -31,12 +87,14 @@ namespace Checkpoints
 	extern bool WantedByPendingSyncCheckpoint(uint256 hashBlock);
 	extern bool ResetSyncCheckpoint();
 	extern void AskForPendingSyncCheckpoint(CNode* pfrom);
-	extern bool SetCheckpointPrivKey(std::string strPrivKey);
-	extern bool SendSyncCheckpoint(uint256 hashCheckpoint);
+	extern bool SetCheckpointPrivKey(CKey privKey);
+	extern bool SendSyncCheckpoint(uint256 hashCheckpoint, const CSyncChkParams &syncChkParamsOut);
 	extern bool IsSyncCheckpointTooOld(unsigned int nSeconds);
+	extern bool ReadCheckpointPubKey(std::string& strPubKeysOut);
+	extern bool WriteCheckpointPubKey(const std::string& strPubKeys);
 }
 
-class CUnsignedSyncCheckpoint
+class CUnsignedSyncChkptMessage
 {
 public:
 	int nVersion;
@@ -54,17 +112,15 @@ public:
 	void print() const;
 };
 
-class CSyncCheckpoint : public CUnsignedSyncCheckpoint
+class CSyncChkptMessage : public CUnsignedSyncChkptMessage
 {
 public:
-	static const std::string strMasterPubKey;
-	static const std::string strMasterPubKeyTestnet;
-	static std::string strMasterPrivKey;
+	static CKey masterKey;
 
 	std::vector<unsigned char> vchMsg;
 	std::vector<unsigned char> vchSig;
 
-	CSyncCheckpoint();
+	CSyncChkptMessage();
 	ADD_SERIALIZE_METHODS;
 	template <typename Stream, typename Operation>
 	inline void SerializationOp(Stream& s, Operation ser_action)
@@ -76,7 +132,20 @@ public:
 	bool IsNull() const;
 	uint256 GetHash() const;
 	bool RelayTo(CNode* pnode) const;
-	bool CheckSignature();
-	bool ProcessSyncCheckpoint(CNode* pfrom);
+	bool CheckSignature(const std::string &sPubkey);
+	bool ProcessSyncCheckpoint(CNode* pfrom, const std::string &sPubkey, std::string &sReasonOut);
+	static CPubKey ParseMasterPubkey(const std::string &sPubkey);
 };
+
+// Komodo added
+namespace Checkpoints
+{
+	extern bool TryInitSyncCheckpoint(const CSyncChkParams &syncChkParams);
+	extern bool OpenSyncCheckpointAtStartup(const CSyncChkParams &syncChkParams);
+	extern bool IsMasterKeySet();
+	extern void TryInitMasterKey();
+	extern bool IsSyncCheckpointUpgradeActive(CSyncChkParams &syncChkParamsOut, int nHeight, int64_t timestamp);
+	extern bool IsSyncCheckpointUpgradeActive(int nHeight, int64_t timestamp);
+}
+
 #endif

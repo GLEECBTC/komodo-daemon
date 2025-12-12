@@ -918,9 +918,10 @@ int32_t komodo_is_special(uint8_t pubkeys[66][33],int32_t mids[66],uint32_t bloc
                 {
                     if ( height > 792000 )
                     {
+                        LogPrint("dpow", "%s mids: ", __func__);
                         for (j=0; j<66; j++)
-                            fprintf(stderr,"%d ",mids[j]);
-                        fprintf(stderr,"ht.%d repeat notaryid.%d in mids[%d]\n",height,notaryid,i);
+                            LogPrint("dpow", "%d ", mids[j]);
+                        LogPrint("dpow", "ht.%d repeat notaryid.%d in mids[%d]\n", height,notaryid,i);
                         return(-1);
                     } else break;
                 }
@@ -1026,11 +1027,14 @@ bool komodo_checkpoint(int32_t *notarized_heightp, int32_t nHeight, uint256 hash
     int32_t notarized_height = komodo_notarizeddata(pindex->nHeight,&notarized_hash,&notarized_desttxid);
     *notarized_heightp = notarized_height;
 
+    // TODO: test debug
+    LogPrint("dpow", "komodo_checkpoint notarized_height=%d notarized_hash=%s pindex->nHeight=%d nHeight=%d\n", notarized_height, notarized_hash.ToString().c_str(), pindex->nHeight, nHeight);
     BlockMap::const_iterator it;
     CBlockIndex *notary;
     if ( notarized_height >= 0 && notarized_height <= pindex->nHeight 
             && (it = mapBlockIndex.find(notarized_hash)) != mapBlockIndex.end() && (notary = it->second) != nullptr )
     {
+        LogPrint("dpow", "komodo_checkpoint notary->nHeight=%d\n", notary->nHeight);
         //verify that the block info returned from komodo_notarizeddata matches the actual block
         if ( notary->nHeight == notarized_height ) // if notarized_hash not in chain, reorg
         {
@@ -1883,6 +1887,7 @@ int32_t komodo_checkPOW(int64_t stakeTxValue, int32_t slowflag,CBlock *pblock,in
                         break;
                     }
             }
+            LogPrintf("komodo_checkPOW komodo_notaries returned n=%d notaryid=%d\n", n, notaryid);
         }
         else if ( possible == 0 || !chainName.isKMD() )
         {
