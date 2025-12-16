@@ -22,11 +22,15 @@ const int32_t nS8HardforkHeight = 4125988;  // dPoW Season 8, Fri Oct 4 2024 (es
 
 const int32_t nKIP0003Activation = nS8HardforkHeight;
 
-const int32_t nSunsettingHeight = 5247009; // TODO fix (now approx Dec 01 2026)
-const uint32_t nSunsettingTimestamp = 1796103821; // TODO fix, now Dec 01 2026
+// KMD DPoW sunsetting height
+const int32_t nSunsettingHeight = 4771595; // Approx Jan 05 2025
+// asset chains DPoW sunsetting time
+const uint32_t nSunsettingTimestamp = 1767528000; // Jan 04 2025 12:00 UTC
 
-const int32_t nSyncChkPointHeight = nSunsettingHeight; // TODO fix
-const uint32_t nSyncChkPointTimestamp = nSunsettingTimestamp; // TODO fix
+// KMD checkpoint auto activation ht
+const int32_t nSyncChkPointHeight = nSunsettingHeight;
+// asset chain auto checkpoint activation time
+const uint32_t nSyncChkPointTimestamp = nSunsettingTimestamp;
 
 // Era array of pubkeys. Add extra seasons to bottom as requried, after adding appropriate info above. 
 const char *notaries_elected[NUM_KMD_SEASONS][NUM_KMD_NOTARIES][2] =
