@@ -55,6 +55,11 @@ namespace Checkpoints
                 { "DOC", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
                 { "MARTY", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
                 // add more asset chains
+                
+                // test chain
+                // auto checkpoint active since Dec, 01 2025
+                { "GULDEN", { 1764606619, "02f9dc5271cc789aab77fb27e8007e681f93135cfcf92d4a514a4649c0e36f14ad" }}
+
             };
         }
 
