@@ -1397,6 +1397,16 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp, const CPubKey& my
             "  \"consensus\": {               (object) branch IDs of the current and upcoming consensus rules\n"
             "     \"chaintip\": \"xxxxxxxx\",   (string) branch ID used to validate the current chain tip\n"
             "     \"nextblock\": \"xxxxxxxx\"   (string) branch ID that the next block will be validated under\n"
+            "  },\n"
+            "  \"synccheckpoint\": {                      (object) sync checkpoint and dPoW status\n"
+            "     \"dpow_active\": xx,                    (boolean) whether dPoW (delayed Proof of Work) is active\n"
+            "     \"sync_checkpoint_active\": xx,         (boolean) whether sync checkpoint upgrade is active\n"
+            "     \"sync_checkpoint_expected\": xx,       (boolean) whether sync checkpoint upgrade is expected\n"
+            "     \"activation_height\": xxxxxx,          (numeric, optional) block height of sync checkpoint activation\n"
+            "     \"activation_timestamp\": xxxxxx,       (numeric, optional) timestamp of sync checkpoint activation\n"
+            "     \"activation_timestamp_utc\": \"xxxx\", (string, optional) UTC timestamp of sync checkpoint activation\n"
+            "     \"masterpubKey\": \"xxxx\",             (string, optional) master public key for sync checkpoint\n"
+            "     \"init\": xx                            (boolean, optional) whether sync checkpoint initialization succeeded\n"
             "  }\n"
             "}\n"
             "\nExamples:\n"
@@ -1477,6 +1487,37 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp, const CPubKey& my
 
         obj.push_back(Pair("pruneheight",        block->nHeight));
     }
+
+    // sync checkpoint and dpow status
+    UniValue syncCheckpoint(UniValue::VOBJ);
+    bool isSunsettingActive = IsSunsettingActive(tip->nHeight, tip->GetBlockTime()); // dPoW is active when !isSunsettingActive
+    syncCheckpoint.push_back(Pair("dpow_active", !isSunsettingActive ? "true" : "false"));
+
+    Checkpoints::CSyncChkParams syncChkParams;
+    bool isSyncCheckpointActive = Checkpoints::IsSyncCheckpointUpgradeActive(syncChkParams, tip->nHeight, tip->GetBlockTime());
+    syncCheckpoint.push_back(Pair("sync_checkpoint_active", isSyncCheckpointActive));
+    bool fValidParams = (!syncChkParams.masterPubKey.empty() && syncChkParams.activeAt != -1);
+    syncCheckpoint.push_back(Pair("sync_checkpoint_expected", fValidParams));
+
+    if (fValidParams) {
+        if (syncChkParams.activeAt < LOCKTIME_THRESHOLD) {
+            syncCheckpoint.push_back(Pair("activation_height", syncChkParams.activeAt));
+        } else {
+            syncCheckpoint.push_back(Pair("activation_timestamp", syncChkParams.activeAt));
+            syncCheckpoint.push_back(Pair("activation_timestamp_utc", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", syncChkParams.activeAt)));
+        }
+        syncCheckpoint.push_back(Pair("masterpubKey", syncChkParams.masterPubKey));
+
+        if (isSyncCheckpointActive) {
+            if (TryInitSyncCheckpoint(syncChkParams)) {
+                syncCheckpoint.push_back(Pair("init", true));
+            } else {
+                syncCheckpoint.push_back(Pair("init", false));
+            }
+        }
+    }
+    obj.push_back(Pair("synccheckpoint", syncCheckpoint));
+
     return obj;
 }
 

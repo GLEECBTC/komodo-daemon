@@ -41,8 +41,11 @@ namespace Checkpoints
 {
     // Asset or KMD chain sync checkpoint activation params
     struct CSyncChkParams {
-        int64_t activeAt;
+        int64_t activeAt = -1;
         std::string masterPubKey;
+        
+        CSyncChkParams() = default;
+        CSyncChkParams(int64_t at, const std::string& key) : activeAt(at), masterPubKey(key) {}
     };
 	extern bool fTryInitDone;
 
