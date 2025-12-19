@@ -38,7 +38,7 @@
 // Adapted for Komodo as replacement for dPoW being sunset.
 
 // How many blocks back the checkpoint should run
-#define AUTO_CHECKPOINT_DEPTH 4
+#define AUTO_CHECKPOINT_DEPTH 10
 const std::string SYNC_CHKPT_DIR = "sync_checkpoint";
 const std::string SYNC_CHKPT_NEW = "new_checkpoint";
 const std::string SYNC_CHKPT_CURR = "curr_checkpoint";
