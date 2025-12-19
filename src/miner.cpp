@@ -857,11 +857,11 @@ CBlockTemplate* CreateNewBlock(const CPubKey _pk, const CScript& _scriptPubKeyIn
                 pblocktemplate->vTxSigOps.push_back(GetLegacySigOpCount(txNotary));
                 nFees += txfees;
                 pblocktemplate->vTxFees[0] = -nFees;
-                fprintf(stderr,"added notaryvin includes proof.%d\n", opret.size() > 0);
+                LogPrint("dpow", "added notaryvin includes proof.%d\n", opret.size() > 0);
             }
             else
             {
-                fprintf(stderr,"error adding notaryvin, need to create 0.0001 utxos\n");
+                LogPrint("dpow", "error adding notaryvin, need to create 0.0001 utxos\n");
                 if ( chainName.isKMD() ||  (!chainName.isKMD() && !isStake) )
                 {
                     LEAVE_CRITICAL_SECTION(cs_main);

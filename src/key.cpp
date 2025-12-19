@@ -391,3 +391,7 @@ void ECC_Stop() {
         secp256k1_context_destroy(ctx);
     }
 }
+
+bool ECC_initialized() {
+    return secp256k1_context_sign != NULL;
+}

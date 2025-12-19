@@ -28,6 +28,7 @@
 #include "addrman.h"
 #include "amount.h"
 #include "checkpoints.h"
+#include "Gulden/auto_checkpoints.h"
 #include "compat/sanity.h"
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
@@ -928,6 +929,7 @@ bool AttemptDatabaseOpen(size_t nBlockTreeDBCache, bool dbCompression, size_t db
         pcoinscatcher = new CCoinsViewErrorCatcher(pcoinsdbview);
         pcoinsTip = new CCoinsViewCache(pcoinscatcher);
         pnotarisations = new NotarisationDB(100*1024*1024, false, fReindex);
+
 
         if (fReindex) {
             boost::filesystem::remove(GetDataDir() / KOMODO_STATE_FILENAME);

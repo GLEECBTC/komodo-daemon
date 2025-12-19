@@ -994,5 +994,6 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
 
 int32_t komodo_isnotaryvout(char *coinaddr,uint32_t tiptime); // from ac_private chains only
 bool komodo_dailysnapshot(int32_t height);
+bool IsSunsettingActive(int nHeight, int64_t timestamp);
 
 #endif // BITCOIN_MAIN_H

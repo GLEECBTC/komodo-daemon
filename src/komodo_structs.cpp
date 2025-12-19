@@ -365,6 +365,7 @@ void komodo_state::AddCheckpoint(const notarized_checkpoint &in)
 int32_t komodo_state::NotarizedData(int32_t nHeight,uint256 *notarized_hashp,uint256 *notarized_desttxidp) const
 {
     bool found = false;
+    LogPrint("dpow", "komodo_state::NotarizedData NPOINTS.size=%d NPOINTS_last_index=%d\n", NPOINTS.size(), NPOINTS_last_index);
 
     if ( NPOINTS.size() > 0 )
     {

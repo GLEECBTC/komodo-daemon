@@ -29,6 +29,7 @@
 #include "importcoin.h"
 #include "chainparams.h"
 #include "checkpoints.h"
+#include "Gulden/auto_checkpoints.h"
 #include "checkqueue.h"
 #include "consensus/upgrades.h"
 #include "consensus/validation.h"
@@ -4358,43 +4359,52 @@ static bool ActivateBestChainStep(bool fSkipdpow, CValidationState &state, CBloc
     const CBlockIndex *pindexOldTip = chainActive.Tip();
     const CBlockIndex *pindexFork = chainActive.FindFork(pindexMostWork);
 
-    // stop trying to reorg if the reorged chain is before last notarized height. 
-    // stay on the same chain tip! 
-    int32_t notarizedht,prevMoMheight; uint256 notarizedhash,txid;
-    notarizedht = komodo_notarized_height(&prevMoMheight,&notarizedhash,&txid);
-    if ( !fSkipdpow && pindexFork != 0 && pindexOldTip->nHeight > notarizedht && pindexFork->nHeight < notarizedht )
+    int nHeightTip = chainActive.Height();
+    int64_t timestamp = komodo_heightstamp(nHeightTip);
+    bool isDpowActive = !IsSunsettingActive(nHeightTip, timestamp);
+    LogPrint("dpow", "%s isDpowActive=%d nHeightTip=%d timestamp=%lld\n", __func__, isDpowActive, nHeightTip, timestamp);
+
+    if (isDpowActive) 
     {
-        LogPrintf("pindexOldTip->nHeight.%d > notarizedht %d && pindexFork->nHeight.%d is < notarizedht %d, so ignore it\n",(int32_t)pindexOldTip->nHeight,notarizedht,(int32_t)pindexFork->nHeight,notarizedht);
-        // *** DEBUG ***
-        if (1)
+        // stop trying to reorg if the reorged chain is before last notarized height. 
+        // stay on the same chain tip! 
+        int32_t notarizedht = 0, prevMoMheight = 0; uint256 notarizedhash,txid;
+        notarizedht = komodo_notarized_height(&prevMoMheight,&notarizedhash,&txid);
+
+        if ( !fSkipdpow && pindexFork != 0 && pindexOldTip->nHeight > notarizedht && pindexFork->nHeight < notarizedht )
         {
-            const CBlockIndex *pindexLastNotarized = mapBlockIndex[notarizedhash];
-            auto msg = "- " + strprintf(_("Current tip : %s, height %d, work %s"),
-                                pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight, pindexOldTip->nChainWork.GetHex()) + "\n" +
-                "- " + strprintf(_("New tip     : %s, height %d, work %s"),
-                                pindexMostWork->phashBlock->GetHex(), pindexMostWork->nHeight, pindexMostWork->nChainWork.GetHex()) + "\n" +
-                "- " + strprintf(_("Fork point  : %s, height %d"),
-                                pindexFork->phashBlock->GetHex(), pindexFork->nHeight) + "\n" +
-                "- " + strprintf(_("Last ntrzd  : %s, height %d"),
-                                pindexLastNotarized->phashBlock->GetHex(), pindexLastNotarized->nHeight);
-            LogPrintf("[ Debug ]\n%s\n",msg);
+            LogPrintf("pindexOldTip->nHeight.%d > notarizedht %d && pindexFork->nHeight.%d is < notarizedht %d, so ignore it\n",(int32_t)pindexOldTip->nHeight,notarizedht,(int32_t)pindexFork->nHeight,notarizedht);
+            // *** DEBUG ***
+            if (1)
+            {
+                const CBlockIndex *pindexLastNotarized = mapBlockIndex[notarizedhash];
+                auto msg = "- " + strprintf(_("Current tip : %s, height %d, work %s"),
+                                    pindexOldTip->phashBlock->GetHex(), pindexOldTip->nHeight, pindexOldTip->nChainWork.GetHex()) + "\n" +
+                    "- " + strprintf(_("New tip     : %s, height %d, work %s"),
+                                    pindexMostWork->phashBlock->GetHex(), pindexMostWork->nHeight, pindexMostWork->nChainWork.GetHex()) + "\n" +
+                    "- " + strprintf(_("Fork point  : %s, height %d"),
+                                    pindexFork->phashBlock->GetHex(), pindexFork->nHeight) + "\n" +
+                    "- " + strprintf(_("Last ntrzd  : %s, height %d"),
+                                    pindexLastNotarized->phashBlock->GetHex(), pindexLastNotarized->nHeight);
+                LogPrintf("[ Debug ]\n%s\n",msg);
 
-            int nHeight = pindexFork ? pindexFork->nHeight : -1;
-            int nTargetHeight = std::min(nHeight + 32, pindexMostWork->nHeight);
-            
-            LogPrintf("[ Debug ] nHeight = %d, nTargetHeight = %d\n", nHeight, nTargetHeight);
+                int nHeight = pindexFork ? pindexFork->nHeight : -1;
+                int nTargetHeight = std::min(nHeight + 32, pindexMostWork->nHeight);
+                
+                LogPrintf("[ Debug ] nHeight = %d, nTargetHeight = %d\n", nHeight, nTargetHeight);
 
-            CBlockIndex *pindexIter = pindexMostWork->GetAncestor(nTargetHeight);
-            while (pindexIter && pindexIter->nHeight != nHeight) {
-                LogPrintf("[ Debug -> New blocks list ] %s, height %d\n", pindexIter->phashBlock->GetHex(), pindexIter->nHeight);
-                pindexIter = pindexIter->pprev;
+                CBlockIndex *pindexIter = pindexMostWork->GetAncestor(nTargetHeight);
+                while (pindexIter && pindexIter->nHeight != nHeight) {
+                    LogPrintf("[ Debug -> New blocks list ] %s, height %d\n", pindexIter->phashBlock->GetHex(), pindexIter->nHeight);
+                    pindexIter = pindexIter->pprev;
+                }
             }
-        }
 
-        CValidationState tmpstate;
-        InvalidateBlock(tmpstate,pindexMostWork); // trying to invalidate longest chain, which tried to reorg notarized chain (in case of fork point below last notarized block)
-        return state.DoS(100, error("ActivateBestChainStep(): pindexOldTip->nHeight.%d > notarizedht %d && pindexFork->nHeight.%d is < notarizedht %d, so ignore it",(int32_t)pindexOldTip->nHeight,notarizedht,(int32_t)pindexFork->nHeight,notarizedht),
-                REJECT_INVALID, "past-notarized-height");
+            CValidationState tmpstate;
+            InvalidateBlock(tmpstate,pindexMostWork); // trying to invalidate longest chain, which tried to reorg notarized chain (in case of fork point below last notarized block)
+            return state.DoS(100, error("ActivateBestChainStep(): pindexOldTip->nHeight.%d > notarizedht %d && pindexFork->nHeight.%d is < notarizedht %d, so ignore it",(int32_t)pindexOldTip->nHeight,notarizedht,(int32_t)pindexFork->nHeight,notarizedht),
+                    REJECT_INVALID, "past-notarized-height");
+        }
     }
     // - On ChainDB initialization, pindexOldTip will be null, so there are no removable blocks.
     // - If pindexMostWork is in a chain that doesn't have the same genesis block as our chain,
@@ -5310,7 +5320,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     {
         if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast() )
         {
-            fprintf(stderr,"ht.%d too early %u vs %u\n",(int32_t)nHeight,(uint32_t)block.GetBlockTime(),(uint32_t)pindexPrev->GetMedianTimePast());
+            LogPrint("dpow", "ht.%d too early %u vs %u\n",(int32_t)nHeight,(uint32_t)block.GetBlockTime(),(uint32_t)pindexPrev->GetMedianTimePast());
             return state.Invalid(error("%s: block's timestamp is too early", __func__),
                                  REJECT_INVALID, "time-too-old");
         }
@@ -5319,7 +5329,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     {
         if ( block.GetBlockTime() <= pindexPrev->nTime )
         {
-            fprintf(stderr,"ht.%d too early2 %u vs %u\n",(int32_t)nHeight,(uint32_t)block.GetBlockTime(),(uint32_t)pindexPrev->nTime);
+            LogPrint("dpow", "ht.%d too early2 %u vs %u\n",(int32_t)nHeight,(uint32_t)block.GetBlockTime(),(uint32_t)pindexPrev->nTime);
             return state.Invalid(error("%s: block's timestamp is too early2", __func__),
                                  REJECT_INVALID, "time-too-old");
         }
@@ -5357,19 +5367,37 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
         }
         if ( nHeight != 0 )
         {
+            // Static checkpoints
             if ( pcheckpoint != 0 && nHeight < pcheckpoint->nHeight )
                 return state.DoS(1, error("%s: forked chain older than last checkpoint (height %d) vs %d", __func__, nHeight,pcheckpoint->nHeight));
-            if ( !komodo_checkpoint(&notarized_height,nHeight,hash) )
-            {
-                CBlockIndex *heightblock = chainActive[nHeight];
-                if ( heightblock != 0 && heightblock->GetBlockHash() == hash )
-                    return true;
-                else 
-                    return state.DoS(1, error("%s: forked chain %d older than last notarized (height %d) vs %d", __func__,
-                            nHeight, notarized_height));
+            
+            // sync checkpoint
+            Checkpoints::CSyncChkParams syncChkParams;
+            if (Checkpoints::IsSyncCheckpointUpgradeActive(syncChkParams, nHeight, block.GetBlockTime())) {
+                if (!TryInitSyncCheckpoint(syncChkParams))
+                    return error("%s() : failed to initialize sync checkpoint", __func__);  
+                // Gulden: check that the block satisfies synchronized checkpoint
+                if (!Checkpoints::CheckSync(hash, pindexPrev))
+                    return state.DoS(100, error("%s: rejected by sync checkpoint lock-in at %d", __func__, nHeight), REJECT_CHECKPOINT, "sync checkpoint mismatch");
+            }
+
+            if (!IsSunsettingActive(nHeight, block.GetBlockTime())) {
+                LogPrint("dpow", "%s dpow is active, height=%d timestamp=%lld\n", __func__, nHeight, block.GetBlockTime());
+                if ( !komodo_checkpoint(&notarized_height,nHeight,hash) )
+                {
+                    CBlockIndex *heightblock = chainActive[nHeight];
+                    if ( heightblock != 0 && heightblock->GetBlockHash() == hash )
+                        return true;
+                    else 
+                        return state.DoS(1, error("%s: forked chain %d older than last notarized (height %d) vs %d", __func__,
+                                nHeight, notarized_height));
+                }
+            } else {
+                LogPrint("dpow", "%s dpow is sunsetting, height=%d timestamp=%lld\n", __func__, nHeight, block.GetBlockTime());
             }
         }
     }
+
     // Reject block.nVersion < 4 blocks
     if (block.nVersion < 4)
         return state.Invalid(error("%s : rejected nVersion<4 block", __func__),
@@ -5805,6 +5833,23 @@ bool ProcessNewBlock(bool from_miner, int32_t height, CValidationState &state, C
 
     if (futureblock == 0 && !ActivateBestChain(false, state, pblock))
         return error("%s: ActivateBestChain failed", __func__);
+
+    Checkpoints::CSyncChkParams syncChkParams;
+    int nHeightActiv = height != 0 ? height : komodo_block2height(pblock);
+    if (Checkpoints::IsSyncCheckpointUpgradeActive(syncChkParams, nHeightActiv, pblock->GetBlockTime())) {
+        if (!TryInitSyncCheckpoint(syncChkParams))
+            return error("%s() : failed to initialize sync checkpoint", __func__);  
+        if (!IsInitialBlockDownload())
+        {
+            // Gulden: if responsible for sync-checkpoint send it
+            if (Checkpoints::IsMasterKeySet())
+                Checkpoints::SendSyncCheckpoint(Checkpoints::AutoSelectSyncCheckpoint(), syncChkParams);
+        }
+
+        LOCK2(cs_main, Checkpoints::cs_hashSyncCheckpoint);
+        // Gulden: check pending sync-checkpoint
+        Checkpoints::AcceptPendingSyncCheckpoint();
+    }
 
     return true;
 }
@@ -6284,6 +6329,18 @@ bool static LoadBlockIndexDB()
         // runs, which makes it return 0, so we guess 50% for now
         progress = (longestchain > 0 ) ? (double) chainActive.Height() / longestchain : 0.5;
     }
+
+    Checkpoints::CSyncChkParams syncChkParams;
+    int nHeight = chainActive.Height();
+    int64_t timestamp = komodo_heightstamp(nHeight);
+    if (Checkpoints::IsSyncCheckpointUpgradeActive(syncChkParams, nHeight, timestamp)) {
+        if (!Checkpoints::OpenSyncCheckpointAtStartup(syncChkParams)) {
+            return error("%s: failed to init sync checkpoint file", __func__);
+        }
+        LogPrintf("%s: sync checkpoint file initialized\n", __func__);
+    }
+    LogPrintf("%s: chainName %s\n", __func__, chainName.ToString());
+
     LogPrintf("%s: hashBestChain=%s height=%d date=%s progress=%f\n", __func__,
               chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
               DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
@@ -6655,6 +6712,7 @@ bool InitBlockIndex()
                 return error("LoadBlockIndex(): genesis block not accepted");
             if (!ActivateBestChain(true, state, &block))
                 return error("LoadBlockIndex(): genesis block cannot be activated");
+
             // Force a chainstate write so that when we VerifyDB in a moment, it doesn't check stale data
             if ( KOMODO_NSPV_FULLNODE )
                 return FlushStateToDisk(state, FLUSH_STATE_ALWAYS);
@@ -7121,7 +7179,7 @@ void static ProcessGetData(CNode* pfrom)
                             //hash = block.GetHash();
                             //for (z=31; z>=0; z--)
                             //    fprintf(stderr,"%02x",((uint8_t *)&hash)[z]);
-                            //fprintf(stderr," send block %d\n",komodo_block2height(&block));
+                            LogPrint("net1", "sending block %s to %d in resp to getdata\n", block.GetHash().ToString(), pfrom->id);
                             pfrom->PushMessage("block", block);
                         }
                         else // MSG_FILTERED_BLOCK)
@@ -7146,7 +7204,7 @@ void static ProcessGetData(CNode* pfrom)
                             // no response
                         }
                     }
-                    // Trigger the peer node to send a getblocks request for the next batch of inventory
+                    // Trigger the peer node to send a getblocks (correction: getheaders) request for the next batch of inventory
                     if (inv.hash == pfrom->hashContinue)
                     {
                         // Bypass PushInventory, this must send even if redundant,
@@ -7775,7 +7833,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         if (chainActive.Tip() != 0 && chainActive.Tip()->nHeight > 100000 && IsInitialBlockDownload())
         {
-            //fprintf(stderr,"dont process getheaders during initial download\n");
+            LogPrint("net1", "Don't process getheaders during initial download, IBT=%d\n", IsInitialBlockDownload());
             return true;
         }
         CBlockIndex* pindex = NULL;
@@ -7801,7 +7859,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         // we must use CNetworkBlockHeader, as CBlockHeader won't include the 0x00 nTx count at the end for compatibility
         vector<CNetworkBlockHeader> vHeaders;
         int nLimit = MAX_HEADERS_RESULTS;
-        LogPrint("net", "getheaders %d to %s from peer=%d\n", (pindex ? pindex->nHeight : -1), hashStop.ToString(), pfrom->id);
+        LogPrint("net", "getheaders %d to %s from peer=%d\n", (pindex ? pindex->nHeight : -1), hashStop.ToString().c_str(), pfrom->id);
         //if ( pfrom->lasthdrsreq >= chainActive.Height()-MAX_HEADERS_RESULTS || pfrom->lasthdrsreq != (int32_t)(pindex ? pindex->nHeight : -1) )// no need to ever suppress this
         {
             pfrom->lasthdrsreq = (int32_t)(pindex ? pindex->nHeight : -1);
@@ -7971,6 +8029,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
         }
 
+        LogPrint("net1", "%s received headers: [", __func__);
+        for (auto hdr : headers) {
+            LogPrint("net1", "%s ", hdr.GetHash().ToString().c_str());
+        }
+        LogPrint("net1", "]\n");
+
         LOCK(cs_main);
 
         if (nCount == 0) {
@@ -8131,6 +8195,37 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 // peer might be an older or different implementation with
                 // a different signature key, etc.
                 Misbehaving(pfrom->GetId(), 10);
+            }
+        }
+    }
+
+    else if (strCommand == "checkpoint")
+    {
+        LOCK(cs_main);
+        Checkpoints::CSyncChkParams syncChkParams;
+        int nHeight = chainActive.Height();
+        int64_t timestamp = komodo_heightstamp(nHeight);
+        if (Checkpoints::IsSyncCheckpointUpgradeActive(syncChkParams, nHeight, timestamp)) {
+            if (!TryInitSyncCheckpoint(syncChkParams))
+                return error("%s() : failed to initialize sync checkpoint", __func__);  
+
+            CSyncChkptMessage checkpoint;
+            vRecv >> checkpoint;
+            
+            std::string sReason;
+            if (checkpoint.ProcessSyncCheckpoint(pfrom, syncChkParams.masterPubKey, sReason))
+            {
+                // Relay
+                pfrom->hashCheckpointKnown = checkpoint.hashCheckpoint;
+                LOCK(cs_vNodes);
+                BOOST_FOREACH(CNode* pnode, vNodes)
+                {
+                    if (pnode->hSocket == INVALID_SOCKET)
+                        continue;
+                    checkpoint.RelayTo(pnode);
+                }
+            } else {
+                LogPrintf("WARNING: %s: Failed to process received checkpoint: %s.\n", __func__, sReason);
             }
         }
     }
@@ -8697,4 +8792,14 @@ CMutableTransaction CreateNewContextualCMutableTransaction(const Consensus::Para
         }
     }
     return mtx;
+}
+
+bool IsSunsettingActive(int nHeight, int64_t timestamp) {
+    AssertLockHeld(cs_main);
+
+    if (chainName.isKMD()) {
+        return nHeight > nSunsettingHeight;
+    } else {
+        return timestamp > nSunsettingTimestamp;
+    }
 }

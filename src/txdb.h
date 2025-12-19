@@ -94,6 +94,7 @@ public:
     bool GetStats(CCoinsStats &stats) const;
 };
 
+
 /** 
  * Access to the block database (blocks/index/)
  * This database consists of:

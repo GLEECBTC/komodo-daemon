@@ -161,10 +161,13 @@ int32_t komodo_notaries(uint8_t pubkeys[64][33],int32_t height,uint32_t timestam
                 if ( ASSETCHAINS_PRIVATE != 0 )
                 {
                     // this is PIRATE, we need to populate the address array for the notary exemptions. 
-                    for (int32_t i = 0; i<NUM_KMD_NOTARIES; i++)
+                    for (int32_t i = 0; i<NUM_KMD_NOTARIES; i++) {
                         pubkey2addr((char *)NOTARY_ADDRESSES[kmd_season-1][i],(uint8_t *)kmd_pubkeys[kmd_season-1][i]);
+                    }
+                    LogPrint("dpow", "komodo_notaries ASSETCHAINS_PRIVATE kmd_season=%d NOTARY_ADDRESSES set (addr0=%s)\n", kmd_season, NOTARY_ADDRESSES[kmd_season-1][0]);
                 }
                 didinit_NOTARIES[kmd_season-1] = true;
+                LogPrint("dpow", "komodo_notaries didinit_NOTARIES kmd_season=%d set to true chainName=%s timestamp=%lld height=%d\n", kmd_season, chainName.symbol().c_str(), timestamp, height);
             }
             memcpy(pubkeys,kmd_pubkeys[kmd_season-1],NUM_KMD_NOTARIES * 33);
             return(NUM_KMD_NOTARIES);
@@ -204,6 +207,7 @@ int32_t komodo_notaries(uint8_t pubkeys[64][33],int32_t height,uint32_t timestam
     if ( (n < 64 && mask == ((1LL << n)-1)) || (n == 64 && mask == 0xffffffffffffffffLL) )
         return n;
     printf("error retrieving notaries ht.%d got mask.%llx for n.%d\n",height,(long long)mask,n);
+    LogPrintf("komodo_notaries error retrieving notaries ht.%d got mask.%llx for n.%d\n", height,(long long)mask,n); // TODO: test log
     return -1;
 }
 
@@ -386,12 +390,16 @@ int32_t komodo_notarized_height(int32_t *prevMoMheightp,uint256 *hashp,uint256 *
 
 int32_t komodo_dpowconfs(int32_t txheight,int32_t numconfs)
 {
+    AssertLockHeld(cs_main);
+    
     static int32_t hadnotarization;
     char symbol[KOMODO_ASSETCHAIN_MAXLEN];
     char dest[KOMODO_ASSETCHAIN_MAXLEN];
     komodo_state *sp;
 
-    if ( KOMODO_DPOWCONFS != 0 && txheight > 0 && numconfs > 0 && (sp= komodo_stateptr(symbol,dest)) != nullptr )
+    int nHeightTip = chainActive.Height();
+    int64_t timestamp = komodo_heightstamp(nHeightTip);
+    if ( !IsSunsettingActive(nHeightTip, timestamp) && KOMODO_DPOWCONFS != 0 && txheight > 0 && numconfs > 0 && (sp= komodo_stateptr(symbol,dest)) != nullptr )
     {
         if ( sp->LastNotarizedHeight() > 0 )
         {

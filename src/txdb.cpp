@@ -779,3 +779,4 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
 
     return true;
 }
+
