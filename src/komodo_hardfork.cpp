@@ -23,9 +23,9 @@ const int32_t nS8HardforkHeight = 4125988;  // dPoW Season 8, Fri Oct 4 2024 (es
 const int32_t nKIP0003Activation = nS8HardforkHeight;
 
 // KMD DPoW sunsetting height
-const int32_t nSunsettingHeight = 4771595; // Approx Jan 05 2025
+const int32_t nSunsettingHeight = 4771595; // Approx Jan 05 2026
 // asset chains DPoW sunsetting time
-const uint32_t nSunsettingTimestamp = 1767528000; // Jan 04 2025 12:00 UTC
+const uint32_t nSunsettingTimestamp = 1767528000; // Jan 04 2026 12:00 UTC
 
 // KMD checkpoint auto activation ht
 const int32_t nSyncChkPointHeight = nSunsettingHeight;
