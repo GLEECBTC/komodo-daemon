@@ -56,3 +56,5 @@ extern const int32_t nSyncChkPointHeight;
 
 extern const int32_t nSunsettingHeight;
 extern const uint32_t nSunsettingTimestamp;
+
+extern const uint32_t nBczeroRaphMdxSyncCheckpointTimestamp;
