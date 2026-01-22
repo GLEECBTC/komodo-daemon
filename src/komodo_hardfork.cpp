@@ -32,6 +32,8 @@ const int32_t nSyncChkPointHeight = nSunsettingHeight;
 // asset chain auto checkpoint activation time
 const uint32_t nSyncChkPointTimestamp = nSunsettingTimestamp;
 
+const uint32_t nBczeroRaphMdxSyncCheckpointTimestamp = 1769526000; // 27 Jan 2026 15:00 UTC
+
 // Era array of pubkeys. Add extra seasons to bottom as requried, after adding appropriate info above. 
 const char *notaries_elected[NUM_KMD_SEASONS][NUM_KMD_NOTARIES][2] =
 {

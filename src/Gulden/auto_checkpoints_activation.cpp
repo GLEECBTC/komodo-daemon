@@ -47,9 +47,9 @@ namespace Checkpoints
                 // { "KOIN", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
                 // { "PIRATE", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
                 { "THC", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
-                // { "BCZERO", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
-                // { "RAPH", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
-                // { "MDX", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
+                { "BCZERO", { nBczeroRaphMdxSyncCheckpointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
+                { "RAPH", { nBczeroRaphMdxSyncCheckpointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
+                { "MDX", { nBczeroRaphMdxSyncCheckpointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
 
                 // test chains:
                 { "DOC", { nSyncChkPointTimestamp, "03fdc6ca526c0cfaed2211d03dc2ea9c083aea127c7769d97dc92fed2085803ce3" }},
