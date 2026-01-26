@@ -1,0 +1,25 @@
+FROM ubuntu:16.04
+# Environment for build komodo daemon
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG BUILDER_NAME=builder
+ARG BUILDER_UID=1000
+ARG BUILDER_GID=1000
+ENV TZ=Europe/Amsterdam
+
+RUN \
+    id -u 102 &>/dev/null && usermod -u 105 $(getent passwd 102 | cut -d: -f1) || true; \
+    apt-get update && apt-get install --no-install-recommends -y apt-transport-https ca-certificates curl &&\
+    sed -i 's/archive\.ubuntu\.com/mirror\.nl\.leaseweb\.net/g' /etc/apt/sources.list &&\
+    sed -i 's/security\.ubuntu\.com/mirror\.nl\.leaseweb\.net/g' /etc/apt/sources.list &&\
+    sed -i 's/http:/https:/g' /etc/apt/sources.list &&\
+    apt-get update && apt-get install -y sudo &&\
+    groupadd --gid ${BUILDER_GID} --force ${BUILDER_NAME} &&\
+    adduser --disabled-password --gecos '' --no-create-home $BUILDER_NAME --uid ${BUILDER_UID} --gid ${BUILDER_GID} &&\
+    adduser $BUILDER_NAME sudo &&\
+    echo "$BUILDER_NAME ALL=(ALL:ALL) NOPASSWD: ALL" | tee /etc/sudoers.d/$BUILDER_NAME &&\
+    apt-get install --no-install-recommends -y build-essential pkg-config libc6-dev m4 g++-multilib autoconf libtool ncurses-dev unzip git python bison zlib1g-dev wget libcurl4-gnutls-dev bsdmainutils automake &&\
+    chmod -R 777 /root
+RUN \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+

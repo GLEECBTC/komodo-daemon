@@ -121,6 +121,8 @@ src/wallet-utility
 src/komodo-cli.exe
 src/komodod.exe
 src/komodo-tx.exe
+src/komodo-test.exe
+src/wallet-utility.exe
 
 #output during builds, symbol tables?
 *.dSYM
@@ -167,3 +169,5 @@ doc/man/Makefile.in
 src/Makefile.in
 src/cc/libcc.so
 src/libcc.so
+
+releases/
