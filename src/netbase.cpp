@@ -493,6 +493,11 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
         // WSAEINVAL is here because some legacy version of winsock uses it
         if (nErr == WSAEINPROGRESS || nErr == WSAEWOULDBLOCK || nErr == WSAEINVAL)
         {
+            if (!IsSelectableSocket(hSocket)) {
+                LogPrintf("connect() to %s failed: non-selectable socket created (fd >= FD_SETSIZE ?)\n", addrConnect.ToString());
+                CloseSocket(hSocket);
+                return false;
+            }
             struct timeval timeout = MillisToTimeval(nTimeout);
             fd_set fdset;
             FD_ZERO(&fdset);
