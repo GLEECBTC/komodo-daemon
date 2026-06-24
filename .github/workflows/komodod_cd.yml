@@ -76,7 +76,9 @@ jobs:
 
   osx-build:
     name: OSX Build
-    if: ${{ github.event_name != 'workflow_dispatch' }}
+    # disabled: OSX build is turned off; set back to
+    # `${{ github.event_name != 'workflow_dispatch' }}` to re-enable
+    if: false
     runs-on: macos-latest-large
 
     steps:
@@ -180,16 +182,12 @@ jobs:
       name: Publishing CD releases
       if: ${{ github.event_name != 'workflow_dispatch' }}
       runs-on: ubuntu-22.04
-      needs: [linux-build, osx-build, windows-build]
+      needs: [linux-build, windows-build]
       steps:
         - name: Download komodo-linux.zip
           uses: actions/download-artifact@v4
           with:
-            name: komodo-linux  
-        - name: Download komodo-osx.zip
-          uses: actions/download-artifact@v4
-          with:
-            name: komodo-osx
+            name: komodo-linux
         - name: Download komodo-win.zip
           uses: actions/download-artifact@v4
           with:
@@ -228,16 +226,6 @@ jobs:
             upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
             asset_path: ./komodo-linux.zip
             asset_name: komodo_${{ steps.shortify_commit.outputs.sha_short }}_${{ steps.extract_branch.outputs.branch }}_linux.zip
-            asset_content_type: application/zip
-        - name: Upload OSX Release Asset
-          id: upload-osx-release-asset 
-          uses: actions/upload-release-asset@latest
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-            asset_path: ./komodo-osx.zip
-            asset_name: komodo_${{ steps.shortify_commit.outputs.sha_short }}_${{ steps.extract_branch.outputs.branch }}_osx.zip
             asset_content_type: application/zip
         - name: Upload Windows Release Asset
           id: upload-windows-release-asset 
