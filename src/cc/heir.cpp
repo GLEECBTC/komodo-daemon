@@ -281,9 +281,14 @@ uint8_t _DecodeHeirOpRet(vscript_t vopret, CPubKey& ownerPubkey, CPubKey& heirPu
     uint8_t heirFuncId = 0;
     
     fundingTxidInOpret = zeroid; //to init
-    
+
+    if (vopret.empty()) {
+        if (!noLogging) std::cerr << "_DecodeHeirOpRet() empty opret" << std::endl;
+        return (uint8_t)0;
+    }
+
     evalCodeInOpret = vopret.begin()[0];
-    
+
     if (vopret.size() > 1 && evalCodeInOpret == EVAL_HEIR) {
         // NOTE: it unmarshals for all F, A and C
         uint8_t heirFuncId = 0;

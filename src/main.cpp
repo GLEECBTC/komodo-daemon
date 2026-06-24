@@ -3427,7 +3427,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         }
     }
     */
-    CCheckQueueControl<CScriptCheck> control(fExpensiveChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
 
     int64_t nTimeStart = GetTimeMicros();
     CAmount nFees = 0;
@@ -3473,6 +3472,13 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     CAmount burnedAmountDelta = 0;
     std::vector<PrecomputedTransactionData> txdata;
     txdata.reserve(block.vtx.size()); // Required so that pointers to individual PrecomputedTransactionData don't get invalidated
+    // SECURITY (CVE-2024-52911 class, use-after-free): `control` MUST be declared
+    // AFTER `txdata`. Local objects are destroyed in reverse order of construction,
+    // so this guarantees `control` is destroyed FIRST — its destructor (Wait) joins
+    // all background script-check threads while `txdata` (the PrecomputedTransactionData
+    // they hold pointers into) is still alive. Reordering these two declarations
+    // reintroduces the use-after-free on any early return. Do NOT move this above txdata.
+    CCheckQueueControl<CScriptCheck> control(fExpensiveChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
     for (unsigned int i = 0; i < block.vtx.size(); i++)
     {
         const CTransaction &tx = block.vtx[i];
@@ -5108,7 +5114,7 @@ bool CheckBlock(int32_t *futureblockp, int32_t height, CBlockIndex *pindex, cons
         CValidationState& state, libzcash::ProofVerifier& verifier, bool fCheckPOW, 
         bool fCheckMerkleRoot)
 {
-    uint8_t pubkey33[33]; 
+    uint8_t pubkey33[33] = {0}; // init: komodo_block2pubkey33() only runs under fCheckPOW, but the December-hardfork branch below reads pubkey33 unconditionally
     uint32_t tiptime = (uint32_t)block.nTime;
     // These are checks that are independent of context.
     uint256 hash = block.GetHash();
