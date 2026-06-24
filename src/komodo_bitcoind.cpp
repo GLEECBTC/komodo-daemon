@@ -633,6 +633,10 @@ int32_t komodo_hasOpRet(int32_t height, uint32_t timestamp)
 
 bool komodo_checkopret(CBlock *pblock, CScript &merkleroot)
 {
+    // guard against a malformed block: the merkleroot opret lives in the last
+    // vout of the last tx, but vtx/vout may be empty before per-tx validation
+    if ( pblock->vtx.empty() || pblock->vtx.back().vout.empty() )
+        return false;
     merkleroot = pblock->vtx.back().vout.back().scriptPubKey;
     return(merkleroot.IsOpReturn() && merkleroot == komodo_makeopret(pblock, false));
 }
