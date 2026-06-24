@@ -438,7 +438,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += HelpMessageOpt("-onlynet=<net>", _("Only connect to nodes in network <net> (ipv4, ipv6 or onion)"));
     strUsage += HelpMessageOpt("-permitbaremultisig", strprintf(_("Relay non-P2SH multisig (default: %u)"), 1));
     strUsage += HelpMessageOpt("-peerbloomfilters", strprintf(_("Support filtering of blocks and transaction with Bloom filters (default: %u)"), 1));
-    strUsage += HelpMessageOpt("-nspv_msg", strprintf(_("Enable NSPV messages processing (default: %u)"), DEFAULT_NSPV_PROCESSING));
+    strUsage += HelpMessageOpt("-nspv_msg", strprintf(_("Enable NSPV messages processing (NOT SUPPORTED: this mode is disabled, the node will refuse to start) (default: %u)"), DEFAULT_NSPV_PROCESSING));
     if (showDebug)
         strUsage += HelpMessageOpt("-enforcenodebloom", strprintf("Enforce minimum protocol version to limit use of Bloom filters (default: %u)", 0));
     strUsage += HelpMessageOpt("-port=<port>", strprintf(_("Listen for connections on <port> (default: %u or testnet: %u)"), 7770, 17770));
@@ -1195,6 +1195,14 @@ bool AppInit2(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (nFD - MIN_CORE_FILEDESCRIPTORS < nMaxConnections)
         nMaxConnections = nFD - MIN_CORE_FILEDESCRIPTORS;
     fprintf(stderr,"nMaxConnections %d\n",nMaxConnections);
+    // NSPV message processing is disabled: the getnSPV/nSPV handlers
+    // (komodo_nSPVreq/komodo_nSPVresp) do hand-rolled, insufficiently bounds-checked
+    // binary parsing of attacker-controlled P2P payloads, which is remotely
+    // memory-unsafe (stack buffer overflow / out-of-bounds reads). Refuse to start
+    // with it enabled rather than expose that surface.
+    if (GetBoolArg("-nspv_msg", DEFAULT_NSPV_PROCESSING)) {
+        return InitError(_("NSPV messages processing (-nspv_msg) is not supported: it has been disabled because its P2P message parsing is not memory-safe."));
+    }
     // if using block pruning, then disable txindex
     // also disable the wallet (for now, until SPV support is implemented in wallet)
     if (GetArg("-prune", 0)) {
