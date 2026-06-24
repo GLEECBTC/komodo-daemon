@@ -5114,7 +5114,7 @@ bool CheckBlock(int32_t *futureblockp, int32_t height, CBlockIndex *pindex, cons
         CValidationState& state, libzcash::ProofVerifier& verifier, bool fCheckPOW, 
         bool fCheckMerkleRoot)
 {
-    uint8_t pubkey33[33]; 
+    uint8_t pubkey33[33] = {0}; // init: komodo_block2pubkey33() only runs under fCheckPOW, but the December-hardfork branch below reads pubkey33 unconditionally
     uint32_t tiptime = (uint32_t)block.nTime;
     // These are checks that are independent of context.
     uint256 hash = block.GetHash();
