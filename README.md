@@ -7,7 +7,7 @@
 [![Last Commit](https://img.shields.io/github/last-commit/komodoplatform/komodo)](https://github.com/KomodoPlatform/komodo/graphs/commit-activity)
 
 [![gitstars](https://img.shields.io/github/stars/komodoplatform/komodo?style=social)](https://github.com/KomodoPlatform/komodo/stargazers)
-[![twitter](https://img.shields.io/twitter/follow/komodoplatform?style=social)](https://twitter.com/komodoplatform)
+[![twitter](https://img.shields.io/twitter/follow/komodoplatform?style=social)](https://x.com/GleecOfficial)
 [![discord](https://img.shields.io/discord/412898016371015680)](https://discord.gg/tvp96Gf)
 
 ---
