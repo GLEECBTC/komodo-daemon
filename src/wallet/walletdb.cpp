@@ -38,6 +38,8 @@
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread.hpp>
 
+#include <unordered_set>
+
 using namespace std;
 
 static uint64_t nAccountingEntryNumber = 0;
@@ -488,12 +490,23 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             auto verifier = libzcash::ProofVerifier::Strict();
             // ac_public chains set at height like KMD and ZEX, will force a rescan if we dont ignore this error: bad-txns-acpublic-chain
             // there cannot be any ztx in the wallet on ac_public chains that started from block 1, so this wont affect those. 
-            // PIRATE fails this check for notary nodes, need exception. Triggers full rescan without it. 
-            if ( !(CheckTransaction(0,wtx, state, verifier, 0, 0) && (wtx.GetHash() == hash) && state.IsValid()) && (state.GetRejectReason() != "bad-txns-acpublic-chain" && state.GetRejectReason() != "bad-txns-acprivacy-chain" && state.GetRejectReason() != "bad-txns-stakingtx") )
+            // PIRATE fails this check for notary nodes, need exception. Triggers full rescan without it.
+            const std::unordered_set<std::string> allowedReasons = {
+                "bad-txns-acpublic-chain",
+                "bad-txns-acprivacy-chain", // TODO: combine acprivacy & acprivate into one condition
+                "bad-txns-acprivate-chain",
+                "bad-txns-stakingtx"
+            };
+            if (!(
+                CheckTransaction(0, wtx, state, verifier, 0, 0) &&
+                (wtx.GetHash() == hash) &&
+                state.IsValid())
+                && !(allowedReasons.count(state.GetRejectReason()) > 0) /* isAllowedRejectReason */
+            )
             {
-                //fprintf(stderr, "tx failed: %s rejectreason.%s\n", wtx.GetHash().GetHex().c_str(), state.GetRejectReason().c_str());
+                // fprintf(stderr, "tx failed: %s rejectreason.%s\n", wtx.GetHash().GetHex().c_str(), state.GetRejectReason().c_str());
                 // vin-empty on staking chains is error relating to a failed staking tx, that for some unknown reason did not fully erase. save them here to erase and re-add later on.
-                if ( ASSETCHAINS_STAKED != 0 && state.GetRejectReason() == "bad-txns-vin-empty" )
+                if (ASSETCHAINS_STAKED != 0 && state.GetRejectReason() == "bad-txns-vin-empty")
                     deadTxns.push_back(hash);
                 return false;
             }
