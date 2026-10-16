@@ -537,29 +537,44 @@ bool CScript::IsPushOnly() const
     return true;
 }
 
-// if the front of the script has check lock time verify. this is a fairly simple check.
-// accepts NULL as parameter if unlockTime is not needed.
 bool CScript::IsCheckLockTimeVerify(int64_t *unlockTime) const
 {
     opcodetype op;
-    std::vector<unsigned char> unlockTimeParam = std::vector<unsigned char>();
-    CScript::const_iterator it = this->begin();
+    std::vector<unsigned char> data;
+    const_iterator it = begin();
 
-    if (this->GetOp2(it, op, &unlockTimeParam))
+    // Accept only OP_0 or direct pushes of 1..5 bytes.
+    // This preserves scriptStart = scriptPubKey[0] + 3.
+    if (!GetOp2(it, op, &data) ||
+        op < OP_0 || op > 0x05 ||
+        data.size() != static_cast<size_t>(op))
     {
-        if (unlockTimeParam.size() >= 0 && unlockTimeParam.size() < 6 &&
-            (*this)[unlockTimeParam.size() + 1] == OP_CHECKLOCKTIMEVERIFY)
-        {
-            int i = unlockTimeParam.size() - 1;
-            for (*unlockTime = 0; i >= 0; i--)
-            {
-                *unlockTime <<= 8;
-                *unlockTime |= *((unsigned char *)unlockTimeParam.data() + i);
-            }
-            return true;
-        }
+        return false;
     }
-    return false;
+
+    if (!GetOp(it, op) || op != OP_CHECKLOCKTIMEVERIFY)
+        return false;
+
+    if (!GetOp(it, op) || op != OP_DROP)
+        return false;
+
+    try
+    {
+        // Use CLTV's numeric format and size limit.
+        // Minimal numeric encoding is not required here.
+        const CScriptNum value(data, false, 5);
+        if (value < 0)
+            return false;
+
+        if (unlockTime)
+            *unlockTime = value.GetInt64();
+
+        return true;
+    }
+    catch (const scriptnum_error&)
+    {
+        return false;
+    }
 }
 
 bool CScript::IsCheckLockTimeVerify() const
