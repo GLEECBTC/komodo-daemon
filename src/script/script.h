@@ -311,6 +311,8 @@ public:
         return m_value;
     }
 
+    int64_t GetInt64() const { return m_value; }
+
     std::vector<unsigned char> getvch() const
     {
         return serialize(m_value);
@@ -603,8 +605,12 @@ public:
     bool IsPushOnly(const_iterator pc) const;
     bool IsPushOnly() const;
 
-    /** if the front of the script has check lock time verify. this is a fairly simple check.
-     * accepts NULL as parameter if unlockTime is not needed.
+    /** Recognize <nonnegative constant> CHECKLOCKTIMEVERIFY DROP at the start.
+     * Only OP_0 and direct pushes of 1..5 bytes are supported, so callers may
+     * skip the prefix with script[0] + 3. OP_1..OP_16 and PUSHDATA1/2/4 are
+     * deliberately excluded. Minimal numeric encoding is not required.
+     * Does not check transaction locktime or require a nonempty remainder.
+     * Accepts nullptr; otherwise writes unlockTime only on success.
      */
     bool IsCheckLockTimeVerify(int64_t *unlockTime) const;
 
