@@ -44,6 +44,8 @@ jobs:
       # flag for some CC tests transactions - so DO NOT USE THIS CI ARTIFACTS IN PRODUCTION!!!
       - name: Build (macOS)
         run: |
+          # Ensure depends can fetch ccache archive on macOS runners
+          export PRIORITY_DOWNLOAD_PATH="https://github.com/ccache/ccache/releases/download/v3.7.4"
           ./zcutil/build-mac-dtest.sh -j4
           gtar -czvf komodo-macos.tar.gz src/komodod src/komodo-cli src/wallet-utility src/komodo-tx
         # env:
