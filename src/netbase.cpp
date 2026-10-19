@@ -219,6 +219,19 @@ bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nM
     return LookupIntern(strHost.c_str(), vIP, nMaxSolutions, fAllowLookup);
 }
 
+ /**
+ * Resolve a host string to its first corresponding network address.
+ */
+ bool LookupHost(const char *pszName, CNetAddr& addr, bool fAllowLookup)
+ {
+    std::vector<CNetAddr> vIP;
+    LookupHost(pszName, vIP, 1, fAllowLookup);
+    if(vIP.empty())
+        return false;
+    addr = vIP.front();
+    return true;
+ }
+
 bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault, bool fAllowLookup, unsigned int nMaxSolutions)
 {
     if (pszName[0] == 0)
@@ -732,6 +745,16 @@ CNetAddr::CNetAddr(const std::string &strIp, bool fAllowLookup)
 unsigned int CNetAddr::GetByte(int n) const
 {
     return ip[15-n];
+}
+
+bool CNetAddr::IsBindAny() const
+{
+    const int cmplen = IsIPv4() ? 4 : 16;
+    for (int i = 0; i < cmplen; ++i) {
+        if (GetByte(i)) return false;
+    }
+
+    return true;
 }
 
 bool CNetAddr::IsIPv4() const
